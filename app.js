@@ -18,8 +18,9 @@ const opts = {
   steps:['No site do Spotify, abra sua conta e vá em Privacidade → Baixar seus dados.', 'Solicite seu histórico de reprodução. Para todos os anos, prefira Histórico de streaming ampliado (Extended streaming history).', 'Quando receber os dados, importe o ZIP ou os JSONs. O site não precisa da sua senha nem de conectar a conta.'],
   wanted:['Histórico de streaming ampliado'],optional:['Histórico de streaming do último ano'],no:'Informações de pagamento, endereço, dados de suporte e registros técnicos.'}
 };
+let overlayHistoryOpen=false;
 let platform='instagram',current=null,year=null,stories=[],index=0,playing=false,tickId=null,elapsed=0,stepMs=7200,warning=[],backdropReady=false,backdropLayer=0,backdropTimer=null;
-const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Publicações','Publicações identificadas'],reels:['◉','Reels publicados','Reels identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],listens:['♫','Reproduções','Faixas ou episódios reproduzidos']};
+const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Posts no feed','Posts identificados no feed'],reels:['◉','Reels publicados','Reels identificados'],storyPosts:['◎','Stories publicados','Stories publicados identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],listens:['♫','Reproduções','Faixas ou episódios reproduzidos']};
 function selectPlatform(next){
  if(!opts[next])return;platform=next;
  document.querySelectorAll('[data-platform]').forEach(el=>{el.classList.toggle('active',el.dataset.platform===next);el.setAttribute('aria-pressed',String(el.dataset.platform===next));});
@@ -96,8 +97,8 @@ function renderStory(){
 function stopClock(){clearInterval(tickId);tickId=null;}
 function startClock(){stopClock();playing=true;$('pauseStory').textContent='Ⅱ';tickId=setInterval(()=>{elapsed+=90;const bars=$('storyProgress').querySelectorAll('span i');if(bars[index])bars[index].style.width=Math.min(100,elapsed/stepMs*100)+'%';if(elapsed>=stepMs){if(index>=stories.length-1){playing=false;stopClock();$('pauseStory').textContent='▷';}else goStory(index+1);}},90);}
 function goStory(i){index=Math.min(Math.max(i,0),stories.length-1);renderStory();if(playing)startClock();}
-function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';startClock();}
-function closeRecap(){clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';}
+function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';if(!overlayHistoryOpen){history.pushState({reeecapOverlay:true},'',location.pathname+location.search+'#recap');overlayHistoryOpen=true;}startClock();}
+function closeRecap(){clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
 function makeCharts(s){
  const max=Math.max(1,...s.months);const names=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
  $('monthChart').innerHTML=s.months.map((v,i)=>'<div class="month-col"><strong>'+fmt(v)+'</strong><div class="month-bar" style="height:'+Math.max(2,v/max*170)+'px"></div><span>'+names[i]+'</span></div>').join('');
@@ -167,11 +168,13 @@ function exportSummary(){
 }
 function newAnalysis(){closeDashboard();current=null;year=null;$('fileInput').value='';$('importar').scrollIntoView({behavior:'smooth'});}
 function init(){
+ window.addEventListener('popstate',()=>{if(overlayHistoryOpen){overlayHistoryOpen=false;closeRecap();}});
  document.querySelectorAll('[data-platform]').forEach(el=>el.addEventListener('click',()=>selectPlatform(el.dataset.platform)));
  selectPlatform('instagram');
  $('selectFiles').addEventListener('click',()=>$('fileInput').click());$('fileInput').addEventListener('change',e=>analyzeFiles(e.target.files));
  const zone=$('dropzone');zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragging');});zone.addEventListener('dragleave',()=>zone.classList.remove('dragging'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragging');analyzeFiles(e.dataTransfer.files);});
  $('demoHero').addEventListener('click',demo);$('demoInline').addEventListener('click',demo);
+ $('backStory').addEventListener('click',()=>{ if(index>0)goStory(index-1); else closeRecap(); });
  $('closeStory').addEventListener('click',closeRecap);$('nextStory').addEventListener('click',()=>goStory(index+1));$('prevStory').addEventListener('click',()=>goStory(index-1));
  $('pauseStory').addEventListener('click',()=>{if(playing){playing=false;stopClock();$('pauseStory').textContent='▷';}else startClock();});
  $('openDashboard').addEventListener('click',openDashboard);$('closeDashboard').addEventListener('click',closeDashboard);

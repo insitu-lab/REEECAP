@@ -40,15 +40,70 @@
     const drop = $('#dropzone');
     drop?.classList.toggle('ready-stage',activeStep===3);
   }
+  const visualGuides = {
+    instagram: {
+      detail: 'Abra o Instagram no celular e siga o caminho abaixo.',
+      screens: [
+        ['Instagram', 'Perfil', 'Toque no seu perfil e abra o menu ☰'],
+        ['Central de Contas', 'Suas informações e permissões', 'Abra a Central de Contas e localize esta opção'],
+        ['Exportação', 'Exportar suas informações', 'Escolha o perfil, selecione só o necessário e exporte em JSON']
+      ],
+      source: 'https://help.instagram.com/181231772500920'
+    },
+    tiktok: {
+      detail: 'No aplicativo TikTok, abra as configurações da sua conta.',
+      screens: [
+        ['TikTok', 'Perfil → ☰', 'Abra Configurações e privacidade'],
+        ['Conta', 'Baixar seus dados', 'Entre em Conta e toque em Baixar seus dados'],
+        ['Solicitar dados', 'Atividade · JSON', 'Selecione Atividade, escolha JSON e solicite o arquivo']
+      ],
+      source: 'https://support.tiktok.com/en/account-and-privacy/personalized-ads-and-data/requesting-your-data'
+    },
+    youtube: {
+      detail: 'A exportação do YouTube é feita pelo Google Takeout.',
+      screens: [
+        ['Google Takeout', 'Desmarcar tudo', 'Abra o Takeout e desmarque os produtos selecionados'],
+        ['Selecionar produto', 'YouTube e YouTube Music', 'Marque o YouTube e, dentro dele, escolha apenas o histórico'],
+        ['Exportação', 'Criar exportação', 'Selecione JSON para o histórico quando disponível e crie o ZIP']
+      ],
+      source: 'https://support.google.com/accounts/answer/3024190'
+    },
+    spotify: {
+      detail: 'Solicite seus dados diretamente nas configurações de privacidade da conta Spotify.',
+      screens: [
+        ['Sua conta', 'Privacidade', 'Abra as configurações de privacidade da conta Spotify pelo navegador'],
+        ['Baixar dados', 'Histórico de streaming ampliado', 'Selecione o histórico ampliado para incluir mais anos'],
+        ['Solicitação', 'Confirmar pedido', 'Confirme e aguarde o link para baixar os arquivos JSON']
+      ],
+      source: 'https://support.spotify.com/article/understanding-your-data/'
+    }
+  };
   function updateExportGuide() {
-    const copy = $('.step-card[data-step="1"] p');
+    const active = $('.platform-card.active')?.dataset.platform || 'instagram';
+    const info = visualGuides[active] || visualGuides.instagram;
     const guide = $('#stepOneLine');
-    if (copy && guide) guide.textContent = copy.textContent;
+    if (guide) guide.textContent = info.detail;
+    const label = $('#exportPlatform')?.textContent || 'Instagram';
     const link = $('#guideExportLink');
     const source = $('#exportLink');
-    if (link && source) {
-      link.href = source.href;
-      link.textContent = `Abrir exportação do ${$('#exportPlatform')?.textContent || 'serviço'} ↗`;
+    if (link && source) { link.href = source.href; link.textContent = 'Abrir configurações'; }
+    const root = $('#platformWalkthrough');
+    if(root){
+      root.replaceChildren();
+      const pages = document.createElement('div'); pages.className='guide-screens';
+      info.screens.forEach((item,i)=>{
+        const screen=document.createElement('div');screen.className='guide-screen';
+        const head=document.createElement('div');head.className='guide-screen-head';
+        const num=document.createElement('b');num.textContent=String(i+1).padStart(2,'0');
+        const brand=document.createElement('strong');brand.textContent=item[0];
+        head.append(num,brand);
+        const chip=document.createElement('div');chip.className='guide-screen-highlight';chip.textContent=item[1];
+        const tip=document.createElement('p');tip.textContent=item[2];
+        screen.append(head,chip,tip);pages.append(screen);
+      });
+      const caption=document.createElement('p');caption.className='guide-screens-caption';caption.textContent='Esquemas ilustrativos dos menus. Os nomes podem variar por versão do aplicativo.';
+      const official=document.createElement('a');official.href=info.source;official.target='_blank';official.rel='noopener noreferrer';official.className='guide-source';official.textContent='Consultar a ajuda oficial de '+label;
+      root.append(pages,caption,official);
     }
   }
   function buildMobileDock() {
@@ -63,7 +118,7 @@
   }
   function setup() {
     buildMobileDock();
-    $$('.site-header [data-view-link], .mobile-dock [data-view-link]').forEach(el => {
+    $$('.site-header [data-view-link], .mobile-dock [data-view-link], .hero-actions [data-view-link]').forEach(el => {
       el.addEventListener('click', event => {
         event.preventDefault();
         const v = el.dataset.viewLink;

@@ -24,6 +24,12 @@ function timeFromRecord(r){
  for(const d of (r.string_list_data || [])){if(d.timestamp!=null){const x=dateValue(d.timestamp);if(x)return x.toISOString();}}
  for(const v of Object.values(r.string_map_data||{})){const x=dateValue(v?.timestamp);if(x)return x.toISOString();}
  for(const v of Object.values(r.media_metadata||{})){const x=dateValue(v?.timestamp);if(x)return x.toISOString();}
+ // Instagram exports single-image feed posts without a top-level timestamp.
+ // Their actual publication time is on media[0].creation_timestamp.
+ if(Array.isArray(r.media)){
+  const dates=r.media.map(m=>dateValue(m?.creation_timestamp??m?.taken_at??m?.timestamp)).filter(Boolean);
+  if(dates.length)return new Date(Math.min(...dates.map(d=>d.getTime()))).toISOString();
+ }
  return null;
 }
 function zipEntries(file){
@@ -56,6 +62,8 @@ async function zipText(file,e){
  throw Error('Formato de compressão ZIP não suportado.');
 }
 function igCategory(path,root){
+ // First distinguish interactions from media published by the user.
+ const base=String(path).split('/').pop().toLowerCase();
  const k=norm(path+'_'+Object.keys(root||{}).slice(0,4).join('_'));
  if(/liked_posts|liked_comments|likes_media_likes|likes_comment_likes|likes_post_likes/.test(k))return 'likes';
  if(/saved_posts|saved_reels|saved_saved_media|saved_saved_reels|saved_saved_posts/.test(k))return 'saved';
@@ -65,40 +73,59 @@ function igCategory(path,root){
  if(/following_json|relationships_following/.test(k))return 'following';
  if(/videos_watched|watch_history|reels_watched/.test(k))return 'watched';
  if(/shared_posts|share_history|reposts|shares\.json/.test(k))return 'shares';
- if(/recent_searches|searches\/|search_history/.test(k))return 'searches';
- if(/(?:^|_)posts_\d|(?:\/|_)posts\.json|ig_posts/.test(k))return 'posts';
- if(/(?:^|_)reels_\d|(?:\/|_)reels\.json|ig_reels/.test(k))return 'reels';
- if(/(?:^|_)stories_\d|(?:\/|_)stories\.json|ig_stories/.test(k))return 'posts';
+ if(/recent_searches|searches|search_history/.test(k) && /search/.test(base))return 'searches';
+ // Only media manifests; avoid other_content, archive and collections.
+ if(/^reels?(?:_\d+)?\.json$/.test(base)||/^ig_reels?(?:_\d+)?\.json$/.test(base))return 'reels';
+ if(/^stories(?:_\d+)?\.json$/.test(base)||/^ig_stories(?:_\d+)?\.json$/.test(base))return 'storyPosts';
+ if(/^posts(?:_\d+)?\.json$/.test(base)||/^ig_posts(?:_\d+)?\.json$/.test(base))return 'posts';
  return null;
 }
 function findIGRecords(root,category){
  if(Array.isArray(root))return root;
  if(!root||typeof root!=='object')return [];
- let arr=[];
+ if(Array.isArray(root.media)&&root.media.length)return [root];
+ const arr=[];
+ const preferred=category==='posts'?/^(ig_posts|posts)$/i:category==='reels'?/^(ig_reels|reels)$/i:category==='storyPosts'?/^(ig_stories|stories)$/i:null;
+ if(preferred){for(const [k,v] of Object.entries(root))if(preferred.test(k)&&Array.isArray(v))arr.push(...v);if(arr.length)return arr;}
  for(const [k,v] of Object.entries(root)){
-  if(!Array.isArray(v))continue;
-  if(/string_list_data|media_metadata/.test(k))continue;
-  if(v.length && typeof v[0]==='object')arr.push(...v);
+  if(!Array.isArray(v)||/string_list_data|media_metadata|label_values/.test(k))continue;
+  if(v.length&&typeof v[0]==='object')arr.push(...v);
  }
  return arr;
 }
-const kinds=['watched','likes','saved','shares','comments','posts','reels','following','followers','searches','stories','listens'];
+const kinds=['watched','likes','saved','shares','comments','posts','reels','storyPosts','following','followers','searches','stories','listens'];
 let events=[], seen=new Set(), skipped=0, parseErrors=0, scanned=0, dedup=new Set(), account=new Map();
-function add(type, date, label='', duration=0, meta=''){
+function add(type, date, label='', duration=0, meta='', uniqueId=''){
  if(!kinds.includes(type))return;
  const valid=date?dateValue(date):null;
  const stamp=valid?valid.toISOString():null;
  const ev={type,time:stamp,duration:Number(duration)||0,label:typeof label==='string'?label.slice(0,120):'',meta:typeof meta==='string'?meta.slice(0,120):''};
- const key=[type,stamp,ev.label,ev.meta,ev.duration].join('|');
+ // Media items are deduplicated by their media URI/ID and date across manifests.
+ const key=[type,stamp,uniqueId||ev.label,ev.meta,ev.duration].join('|');
  if(dedup.has(key))return;dedup.add(key);events.push(ev);seen.add(type);
+}
+function igPublicationType(record,category){
+ if(!['posts','reels','storyPosts'].includes(category))return category;
+ if(category!=='posts')return category;
+ const media=Array.isArray(record.media)?record.media:[];
+ const desc=[record.media_type,record.product_type,record.productType,record.type,...media.map(m=>m?.media_type),...media.map(m=>m?.product_type),...media.map(m=>m?.uri),record.uri].filter(x=>typeof x==='string').join(' ').toLowerCase();
+ return /\b(reels?|clips)\b|\/(?:reels?|clips)\//.test(desc)?'reels':'posts';
+}
+function igMediaId(record){
+ const media=Array.isArray(record.media)?record.media:[];
+ const one=media.find(m=>typeof m?.uri==='string'&&m.uri);
+ return String(record.fbid||record.media_id||record.id||record.uri||one?.uri||'');
 }
 function parseInstagram(name,root){
  const category=igCategory(name,root);if(!category)return;
  seen.add(category);
  for(const r of findIGRecords(root,category)){
   if(!r||typeof r!=='object')continue;
-  const label=r.title||r.username||r.name||'';
-  add(category,timeFromRecord(r),label);
+  const type=igPublicationType(r,category);
+  const media=Array.isArray(r.media)?r.media:[];
+  const label=r.title||r.username||r.name||media[0]?.title||media[0]?.caption||'';
+  // One event per published entry; a carousel with multiple media is still one post.
+  add(type,timeFromRecord(r),label,0,'',igMediaId(r));
  }
 }
 function tiktokCat(path){
@@ -182,9 +209,16 @@ self.onmessage=async e=>{
     skipped+=entries.length-eligible.length;
    } else if(supportedFile(platform,file.name))jobs.push({file,name:file.name});else skipped++;
   }
-  // In Spotify, extended history is preferable to simpler account history (avoid double counting).
-  const hasExtended=platform==='spotify'&&jobs.some(j=>/endsong|streaming_history_audio|streaming_history_video/i.test(j.name));
-  const filtered=hasExtended?jobs.filter(j=>!/(?:^|\/)StreamingHistory\d*\.json|StreamingHistory_(?:music|podcast)/i.test(j.name)):jobs;
+  // Prefer Instagram's posts_1.json over the parallel posts.json manifest.
+  // The latter may duplicate entries and contain inaccurate historical timestamps.
+  const selected=jobs.filter(job=>{
+   if(platform!=='instagram'||!/(?:^|\/)posts\.json$/i.test(job.name))return true;
+   const base=job.name.replace(/posts\.json$/i,'');
+   return !jobs.some(other=>other.file===job.file&&other.name!==job.name&&other.name.startsWith(base+'posts_')&&/posts_\d+\.json$/i.test(other.name));
+  });
+  // In Spotify, extended history is preferable to simpler account history.
+  const hasExtended=platform==='spotify'&&selected.some(j=>/endsong|streaming_history_audio|streaming_history_video/i.test(j.name));
+  const filtered=hasExtended?selected.filter(j=>!/(?:^|\/)StreamingHistory\d*\.json|StreamingHistory_(?:music|podcast)/i.test(j.name)):selected;
   for(let i=0;i<filtered.length;i++){
    const job=filtered[i];self.postMessage({kind:'progress',current:i,total:filtered.length,name:job.name});
    try{const content=job.entry?await zipText(job.file,job.entry):await job.file.text();consume(platform,job.name,content);}
