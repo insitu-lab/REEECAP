@@ -50,7 +50,7 @@ Para publicar em GitHub Pages, envie a pasta inteira para a raiz do repositório
 - `index.html` / `style.css`: interface e experiência narrativa;
 - `app.js`: story player, painel, gráficos, resumo e PNG;
 - `worker.js`: leitura de ZIP e normalização de atividades;
-- `vendor/pako_inflate.min.js`: descompressão DEFLATE incluída localmente (pako 0.2.9, licença MIT);
+- `worker.js`: leitor ZIP/JSON local, com descompressão DEFLATE incorporada (pako 0.2.9, licença MIT);
 - `config.js`: Pix opcional.
 
 ## Localização / idiomas
@@ -60,3 +60,8 @@ Interface inicial em português do Brasil. Tradução completa para inglês e es
 ## Licença
 
 MIT. Não afiliado à Meta, TikTok, Google/YouTube, Spotify ou Reddit. As marcas pertencem aos respectivos titulares.
+
+
+### Correção do player (16/11/2026)
+
+Corrigida a ordem das camadas dos Stories. O fundo da transição fica abaixo do texto e dos botões; a interface permanece visível durante a mudança de cores. A atualização para quem já publicou exige substituir apenas `app.js` na raiz do repositório.

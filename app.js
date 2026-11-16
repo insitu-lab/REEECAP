@@ -19,7 +19,7 @@ const opts = {
   wanted:['Histórico de streaming ampliado'],optional:['Histórico de streaming do último ano'],no:'Informações de pagamento, endereço, dados de suporte e registros técnicos.'}
 };
 let platform='instagram',current=null,year=null,stories=[],index=0,playing=false,tickId=null,elapsed=0,stepMs=7200,warning=[],backdropReady=false,backdropLayer=0,backdropTimer=null;
-const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Publicações','Publicações identificadas'],reels:['◉','Reels publicados','Reels identificados'],stories:['◌','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],listens:['♫','Reproduções','Faixas ou episódios reproduzidos']};
+const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Publicações','Publicações identificadas'],reels:['◉','Reels publicados','Reels identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],listens:['♫','Reproduções','Faixas ou episódios reproduzidos']};
 function selectPlatform(next){
  if(!opts[next])return;platform=next;
  document.querySelectorAll('[data-platform]').forEach(el=>{el.classList.toggle('active',el.dataset.platform===next);el.setAttribute('aria-pressed',String(el.dataset.platform===next));});
@@ -69,7 +69,15 @@ function storyHTML(s){
 }
 function renderStory(){
  const s=stories[index];if(!s)return;
+ // Camadas estáveis: o fundo precisa estar atrás do conteúdo, nunca por cima.
+ // Corrige a tela magenta/roxa vazia que aparecia após o primeiro Story
+ // em dispositivos móveis, especialmente durante a transição entre fundos.
+ const shell=document.querySelector('.recapop-shell');
+ if(shell){shell.style.zIndex='2';shell.style.backgroundColor='transparent';}
  $('storyVisual').innerHTML=storyHTML(s);
+ // Símbolos do recap não devem parecer um indicador de carregamento infinito.
+ const burst=$('storyVisual').querySelector('.story-burst');
+ if(burst)burst.style.animation='none';
  const gradient=`radial-gradient(circle at 70% 21%, ${s.color[1]} 0%, transparent 58%),linear-gradient(143deg,${s.color[0]},${s.color[1]})`;
  const first=$('storyBackdrop'),second=$('storyBackdropNext');
  if(!backdropReady){first.style.background=gradient;first.style.opacity='1';second.style.opacity='0';backdropReady=true;backdropLayer=0;}
