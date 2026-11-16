@@ -2,6 +2,10 @@
 
 Uma retrospectiva independente e gratuita das suas atividades digitais, feita **no navegador**, sem upload, login ou backend.
 
+## Versão de design (edição 02)
+
+A interface inclui vitrine compacta de plataformas, prévia interativa clicável, fluxo guiado por etapas e visualização em tela cheia. A prévia mostra dados **fictícios e identificados**; o motor de análise continua em beta. A folha `edition-02.css` contém os ajustes visuais desta edição.
+
 ## Situação deste protótipo
 
 - **Instagram (beta):** curtidas, salvos, comentários, Stories, contas seguidas, seguidores, publicações, Reels e outras categorias, conforme o JSON exportado.
