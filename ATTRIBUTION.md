@@ -4,6 +4,6 @@ Os ícones de marcas em `assets/brands/` e o ícone de escudo em `assets/icons/`
 
 Ícones sob Creative Commons Attribution 4.0 (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/
 
-Marcas como Instagram, TikTok, YouTube e Spotify são propriedade de seus respectivos titulares. O uso aqui identifica as plataformas, sem alegar parceria oficial.
+Marcas como Instagram, TikTok, YouTube e Reddit são propriedade de seus respectivos titulares. O uso aqui identifica as plataformas, sem alegar parceria oficial.
 
 A marca REEECAP foi fornecida pelo responsável do projeto.

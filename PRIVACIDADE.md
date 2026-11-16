@@ -10,4 +10,4 @@ Se você optar por apoiar via Pix, o pagamento é feito fora do REEECAP e sujeit
 
 Este software é aberto: qualquer pessoa pode inspecionar os arquivos JavaScript e conferir se existem requisições de rede. **A segurança depende também do local em que o site for publicado**. Consulte sempre o endereço e o código da versão que estiver usando.
 
-Não somos afiliados à Meta, TikTok, Google, Spotify ou Reddit. Para dúvidas ou correções, abra uma issue no repositório público do projeto, sem anexar arquivos de exportação reais.
+Não somos afiliados à Meta, TikTok, Google ou Reddit. Para dúvidas ou correções, abra uma issue no repositório público do projeto, sem anexar arquivos de exportação reais.

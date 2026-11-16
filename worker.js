@@ -93,13 +93,13 @@ function findIGRecords(root,category){
  }
  return arr;
 }
-const kinds=['watched','likes','saved','shares','comments','posts','reels','storyPosts','following','followers','searches','stories','listens'];
+const kinds=['watched','likes','saved','shares','comments','posts','reels','storyPosts','following','followers','searches','stories','downvotes'];
 let events=[], seen=new Set(), skipped=0, parseErrors=0, scanned=0, dedup=new Set(), account=new Map();
 function add(type, date, label='', duration=0, meta='', uniqueId=''){
  if(!kinds.includes(type))return;
  const valid=date?dateValue(date):null;
  const stamp=valid?valid.toISOString():null;
- const ev={type,time:stamp,duration:Number(duration)||0,label:typeof label==='string'?label.slice(0,120):'',meta:typeof meta==='string'?meta.slice(0,120):''};
+ const ev={type,time:stamp,duration:Number(duration)||0,label:typeof label==='string'?label.slice(0,type==='comments'?1800:180):'',meta:typeof meta==='string'?meta.slice(0,120):''};
  // Media items are deduplicated by their media URI/ID and date across manifests.
  const key=[type,stamp,uniqueId||ev.label,ev.meta,ev.duration].join('|');
  if(dedup.has(key))return;dedup.add(key);events.push(ev);seen.add(type);
@@ -123,7 +123,9 @@ function parseInstagram(name,root){
   if(!r||typeof r!=='object')continue;
   const type=igPublicationType(r,category);
   const media=Array.isArray(r.media)?r.media:[];
-  const label=r.title||r.username||r.name||media[0]?.title||media[0]?.caption||'';
+  const fromMap=r.string_map_data||{};
+  const commentValue=fromMap.Comment?.value||fromMap.comment?.value||fromMap.Text?.value||fromMap.text?.value||r.comment||r.text||r.content||'';
+  const label=type==='comments'?(commentValue||r.title||''):(r.title||r.username||r.name||media[0]?.title||media[0]?.caption||'');
   // One event per published entry; a carousel with multiple media is still one post.
   add(type,timeFromRecord(r),label,0,'',igMediaId(r));
  }
@@ -159,16 +161,6 @@ function parseTikTok(name,root){
  }
  walk(root,name,0);
 }
-function parseSpotify(name,root){
- if(!Array.isArray(root)||!/(streaming|endsong|history)/i.test(name))return;
- if(!root.length)return;
- if(!root[0]||!('ms_played' in root[0])&&!('msPlayed' in root[0]))return;
- seen.add('listens');
- for(const r of root){const dur=r.ms_played??r.msPlayed??0;const label=r.master_metadata_track_name||r.trackName||r.episode_name||r.episodeName||'';
-  const artist=r.master_metadata_album_artist_name||r.artistName||r.episode_show_name||r.podcastName||'';
-  if(dur>0)add('listens',r.ts||r.endTime,label,dur,artist);
- }
-}
 function parseYouTube(name,root){
  if(!Array.isArray(root))return;
  const path=norm(name);
@@ -178,20 +170,72 @@ function parseYouTube(name,root){
   seen.add('searches');for(const r of root){if(r&&typeof r==='object')add('searches',r.time||r.date,'');}
  }
 }
+function parseCSV(text,visit){
+ let cols=[],cell='',quoted=false,head=null;
+ text=text.replace(/^\uFEFF/,'');
+ const emit=()=>{
+  cols.push(cell);cell='';
+  if(!head){head=cols.map(v=>String(v||'').trim().replace(/^\uFEFF/,''));}
+  else if(cols.some(c=>c.trim())){
+   const row={};head.forEach((key,i)=>{if(key)row[key]=cols[i]||'';});visit(row);
+  }
+  cols=[];
+ };
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c;}
+  else if(c==='"'&&cell==='')quoted=true;
+  else if(c===',') {cols.push(cell);cell='';}
+  else if(c==='\n'){emit();}
+  else if(c==='\r'){if(text[i+1]==='\n')i++;emit();}
+  else cell+=c;
+ }
+ if(cell||cols.length)emit();
+}
+function redditCategory(path){
+ const base=String(path).split('/').pop().toLowerCase();
+ if(base==='posts.csv')return 'posts';
+ if(base==='comments.csv')return 'comments';
+ if(/^(saved_posts|saved_comments)\.csv$/.test(base))return 'saved';
+ if(/^(upvoted_posts|upvoted_comments)\.csv$/.test(base))return 'likes';
+ if(/^(downvoted_posts|downvoted_comments)\.csv$/.test(base))return 'downvotes';
+ if(/^(post_votes|comment_votes)\.csv$/.test(base))return 'votes';
+ return null;
+}
+function parseReddit(name,text){
+ const kind=redditCategory(name);if(!kind)return;
+ if(text.length>50*1024*1024)throw Error('CSV muito grande. Separe arquivos menores antes de importar.');
+ if(kind!=='votes')seen.add(kind);
+ parseCSV(text,r=>{
+  const obj=Object.fromEntries(Object.entries(r).map(([k,v])=>[k.toLowerCase().trim().replace(/[^a-z0-9]+/g,'_'),v]));
+  const vote=String(obj.direction||obj.vote||obj.vote_direction||obj.vote_type||obj.vote_value||'').toLowerCase();
+  const type=kind==='votes' ? (/down|^-1$|false/.test(vote)?'downvotes':/up|^1$|true/.test(vote)?'likes':null) :kind;
+  if(!type)return;
+  seen.add(type);
+  const date=obj.created_utc||obj.created_at||obj.creation_date||obj.date||obj.timestamp||obj.time||obj.created||'';
+  const label= type==='comments' ? (obj.body||obj.comment||obj.text||obj.content||'') :(obj.title||obj.permalink||obj.url||obj.id||'');
+  const unique=String(obj.id||obj.permalink||obj.url||obj.post_id||obj.comment_id||'');
+  // Votes/saves may not contain action timestamps in Reddit exports.
+  // Keep undated totals separate; never assign them to the chosen year.
+  add(type,date,label,0,'',unique||label);
+ });
+}
+
 function supportedFile(platform,name){
  const x=name.toLowerCase();
- if(!x.endsWith('.json')||banned.test(x))return false;
+ if(banned.test(x))return false;
+ if(platform==='reddit')return redditCategory(x)!==null;
+ if(!x.endsWith('.json'))return false;
  if(platform==='instagram')return /likes|liked|saved|comments|story_interactions|stories_liked|following|followers|posts|reels|stories|video|search|share|repost/.test(x);
  if(platform==='tiktok')return true;
- if(platform==='spotify')return /streaming|endsong/i.test(x);
  if(platform==='youtube')return /watch.history|search.history/.test(x);
  return false;
 }
 function consume(platform,name,content){
+ if(platform==='reddit'){parseReddit(name,content);scanned++;return;}
  let obj;try{obj=JSON.parse(content.replace(/^\uFEFF/,''));}catch(err){parseErrors++;return;}
  if(platform==='instagram')parseInstagram(name,obj);
  if(platform==='tiktok')parseTikTok(name,obj);
- if(platform==='spotify')parseSpotify(name,obj);
  if(platform==='youtube')parseYouTube(name,obj);
  scanned++;
 }
@@ -216,16 +260,14 @@ self.onmessage=async e=>{
    const base=job.name.replace(/posts\.json$/i,'');
    return !jobs.some(other=>other.file===job.file&&other.name!==job.name&&other.name.startsWith(base+'posts_')&&/posts_\d+\.json$/i.test(other.name));
   });
-  // In Spotify, extended history is preferable to simpler account history.
-  const hasExtended=platform==='spotify'&&selected.some(j=>/endsong|streaming_history_audio|streaming_history_video/i.test(j.name));
-  const filtered=hasExtended?selected.filter(j=>!/(?:^|\/)StreamingHistory\d*\.json|StreamingHistory_(?:music|podcast)/i.test(j.name)):selected;
+  const filtered=selected;
   for(let i=0;i<filtered.length;i++){
    const job=filtered[i];self.postMessage({kind:'progress',current:i,total:filtered.length,name:job.name});
    try{const content=job.entry?await zipText(job.file,job.entry):await job.file.text();consume(platform,job.name,content);}
    catch(err){parseErrors++;self.postMessage({kind:'warning',message:'Não foi possível ler '+job.name.split('/').pop()+': '+err.message});}
   }
   if(!filtered.length)throw Error('Não encontrei arquivos JSON de atividades para essa plataforma. Confira a rede selecionada e o formato da exportação.');
-  if(!events.length)throw Error('Não encontrei registros compatíveis. É possível que a exportação use um formato diferente ou não tenha essas atividades.');
-  self.postMessage({kind:'result',data:{events,seen:[...seen],scanned,skipped,parseErrors,platform}});
+  if(!events.length)throw Error('Não encontrei registros compatíveis. Confira se escolheu a rede correta e exportou as categorias de atividade.');
+  self.postMessage({kind:'result',data:{events,seen:[...seen],scanned,skipped,parseErrors,platform,undatedCounts:events.filter(x=>!x.time).reduce((acc,e)=>{acc[e.type]=(acc[e.type]||0)+1;return acc;},{})}});
  }catch(err){self.postMessage({kind:'error',message:err.message});}
 };

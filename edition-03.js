@@ -1,7 +1,7 @@
 /* REEECAP — temas rotativos, sem rastrear visitantes nem ler arquivos. */
 (()=>{
  'use strict';
- const themes=['instagram','tiktok','spotify','youtube'];
+ const themes=['instagram','tiktok','reddit','youtube'];
  let last=-1;
  try{last=Number(sessionStorage.getItem('reeecap-last-theme'));}catch{}
  if(!Number.isInteger(last)||last<0||last>=themes.length)last=-1;
@@ -11,7 +11,7 @@
  document.body.dataset.theme=themes[next];
  try{sessionStorage.setItem('reeecap-last-theme',String(next));}catch{}
  // A informação salva aqui é apenas o último tema, nunca dados da exportação.
- const names={instagram:'Instagram',tiktok:'TikTok',spotify:'Spotify',youtube:'YouTube'};
+ const names={instagram:'Instagram',tiktok:'TikTok',reddit:'Reddit',youtube:'YouTube'};
  const stage=document.querySelector('#previewStage');
  const logo=document.querySelector('#stagePlatformLogo'); if(logo)logo.src='./assets/brands/'+themes[next]+'.svg';
  if(stage){

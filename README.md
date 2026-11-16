@@ -1,67 +1,56 @@
-# REEECAP — recap everything.
+# REEECAP — Recap Everything
 
-Uma retrospectiva independente e gratuita das suas atividades digitais, feita **no navegador**, sem upload, login ou backend.
+Projeto independente e **open source** do Insitu Lab. Um site estático, com uma retrospectiva baseada apenas nos dados que o usuário exporta das plataformas.
 
-## Versão de design (edição 02)
+## Suporte desta edição (revisão do vídeo 02)
 
-A interface inclui vitrine compacta de plataformas, prévia interativa clicável, fluxo guiado por etapas e visualização em tela cheia. A prévia mostra dados **fictícios e identificados**; o motor de análise continua em beta. A folha `edition-02.css` contém os ajustes visuais desta edição.
+- **Instagram (beta):** curtidas, salvos, comentários (inclusive texto quando exportado), posts, Reels, Stories e outras interações reconhecidas pelos arquivos JSON.
+- **TikTok (beta):** histórico de vídeos, curtidas, favoritos, compartilhamentos e outras atividades quando aparecem nos JSONs reconhecidos.
+- **YouTube (beta):** histórico de vídeos assistidos e pesquisas, conforme arquivos JSON do Google Takeout.
+- **Reddit (beta):** posts, comentários, votos positivos e negativos e salvos, conforme arquivos CSV exportados. Quando não há data, mostra o total como *sem data*, **não** como estatística do ano.
 
-## Situação deste protótipo
+**Não existe conexão às contas.** A pessoa baixa os dados diretamente da rede social. O REEECAP funciona localmente no navegador, por Web Worker. O código não tem servidor de coleta, analytics ou cookies, e a política de segurança bloqueia requisições de rede feitas pelo aplicativo.
 
-- **Instagram (beta):** curtidas, salvos, comentários, Stories, contas seguidas, seguidores, publicações, Reels e outras categorias, conforme o JSON exportado.
-- **TikTok (beta):** vídeos assistidos, curtidos, salvos, compartilhamentos, comentários e pesquisas conforme a estrutura da exportação.
-- **YouTube (beta):** histórico de visualização e de pesquisa em JSON do Google Takeout.
-- **Spotify (beta):** histórico básico ou ampliado de reprodução, incluindo tempo reproduzido, artista e faixa quando constarem do arquivo.
-- **Reddit:** planejado; ainda não lê o CSV exportado.
+## Instalação / publicação
 
-**Importante:** formatos de exportação variam. O REEECAP **não inventa estatísticas**, não deduz tempo de tela pelo total de vídeos nem estima compartilhamentos via Direct. Um campo não exportado é mostrado como *não encontrado*, não como zero. Os números de compartilhamentos abrangem apenas eventos que a plataforma disponibiliza separadamente. Datas/horas são tratadas em UTC neste protótipo.
+Envie **o conteúdo da pasta** para a raiz do repositório GitHub (não envie o ZIP inteiro como único arquivo) e configure Settings → Pages → Deploy from a branch → main → /(root). O arquivo `index.html` precisa estar na raiz, junto de `app.js`, `worker.js`, folhas CSS e a pasta `assets`.
+
+Em computador, pode executar `python3 -m http.server 8000` nesta pasta e abrir `http://localhost:8000`. Para Web Workers, não abra diretamente `file://`.
 
 ## Como usar
 
-1. Abra o site e escolha a plataforma.
-2. Siga o passo a passo para exportar somente as atividades relevantes em JSON. **Não inclua mensagens, contatos, fotos, senhas, arquivos pessoais ou localização.**
-3. Após o download da plataforma, importe o arquivo `.zip` **sem extrair** (ou `.json` individual).
-4. Selecione o ano, percorra os cards e abra o painel de métricas. Você pode baixar um card PNG ou um resumo TXT.
+1. Escolha Instagram, TikTok, YouTube ou Reddit.
+2. Siga o guia por aplicativo. Exporte **apenas dados de atividade**, evitando conversas, localização, contatos, IPs e arquivos de segurança.
+3. Selecione o arquivo ZIP, JSON ou CSV pelo botão da página.
+4. Explore os Stories e as métricas. O botão “Continuar minha retrospectiva” reabre a análise **enquanto a aba permanecer aberta**.
+5. No painel, pesquise comentários que vieram no arquivo e, se quiser, exporte seus próprios textos em `.txt`. Isso não é enviado a servidor.
 
-## Rodar localmente
+## Limitações importantes
 
-Este site é estático. Para testar o processamento com *Web Workers*, abra por HTTP (não via `file://`):
+- O formato das exportações muda com o tempo. Ainda falta testar amostras reais grandes (como ZIPs de aproximadamente 400 MB). Importações de alto volume podem exceder a memória do celular.
+- O total de visualizações é o número de **registros no histórico**, não necessariamente vídeos únicos.
+- Não há contagem de reproduções de Reels se a exportação não trouxer histórico correspondente.
+- Não dá para identificar o **comentário mais curtido** sem que a exportação traga as curtidas recebidas por comentário.
+- Algumas atividades do Reddit (salvos e votos) podem vir sem data; **não** são atribuídas a um ano por suposição.
+- A visualização não insere fotos ou vídeos pessoais sem consentimento; para fundos, o aplicativo usa somente elementos visuais próprios.
+- Nada é salvo entre recarregamentos. O cache de resultados é apenas da **memória da aba atual** para reabrir a retrospectiva sem importar novamente.
+- A demonstração utiliza dados **fictícios e identificados**; nunca confundi-los com análise real.
 
-```bash
-cd insta-recap
-python3 -m http.server 8000
-# acesse http://localhost:8000
-```
+## Código e licenças
 
-Para publicar em GitHub Pages, envie a pasta inteira para a raiz do repositório e habilite Pages em **Settings → Pages → Deploy from a branch**.
+- `app.js`: navegação dos Stories, métricas, busca em comentários, exportação PNG/TXT.
+- `worker.js`: leitor local ZIP/JSON/CSV, com `pako 0.2.9` (MIT) incorporado para descompressão.
+- `atelier.js`: navegação e tutorial de exportação por plataforma.
+- `edition-04.css`: design e ajustes de responsividade desta revisão.
+- `config.js`: chave Pix opcional. Nunca publique dados privados nessa configuração.
+- `assets/brands`: Font Awesome Free, SVGs de marcas sob CC BY 4.0; veja `ATTRIBUTION.md`.
+- `PRIVACIDADE.md`: políticas e orientações.
 
-## Privacidade e segurança
+Licença do código: MIT. Marcas pertencem aos respectivos titulares. O REEECAP não é afiliado à Meta, ByteDance, Google ou Reddit.
 
-- Não há login, servidor de análise, cookies, pixels de rastreamento, analytics ou transmissão de ZIP/JSON. O CSP bloqueia conexões (`connect-src 'none'`).
-- O processamento de ZIP/JSON usa um Web Worker do próprio site. Apenas JSONs de atividades reconhecidas entram no leitor; categorias e mídias privadas são ignoradas.
-- O arquivo não é armazenado no aparelho pelo site. Os dados carregados ficam na memória até fechar/recarregar a página.
-- Arquivos ZIP podem ocupar centenas de MB. O leitor descarta entradas de mídia e limita cada JSON a 260 MB descompactados, mas aparelhos com pouca memória ainda podem não concluir grandes análises. Não há garantia de suporte a todo ZIP de 400 MB; exportar apenas atividades é preferível.
-- Evite compartilhar o ZIP com terceiros. Para colaborar com um formato de exportação, crie exemplos **fictícios e anonimizados**.
-- A chave Pix em `config.js` é opcional. Adicione apenas chave pública apropriada para divulgação — **nunca** credenciais privadas.
-- Leia [PRIVACIDADE.md](PRIVACIDADE.md) para mais detalhes.
+## Próximas prioridades
 
-## Arquivos
-
-- `index.html` / `style.css`: interface e experiência narrativa;
-- `app.js`: story player, painel, gráficos, resumo e PNG;
-- `worker.js`: leitura de ZIP e normalização de atividades;
-- `worker.js`: leitor ZIP/JSON local, com descompressão DEFLATE incorporada (pako 0.2.9, licença MIT);
-- `config.js`: Pix opcional.
-
-## Localização / idiomas
-
-Interface inicial em português do Brasil. Tradução completa para inglês e espanhol está planejada; as exportações podem trazer campos em outros idiomas e serão ampliadas a partir de amostras fictícias.
-
-## Licença
-
-MIT. Não afiliado à Meta, TikTok, Google/YouTube, Spotify ou Reddit. As marcas pertencem aos respectivos titulares.
-
-
-### Correção do player (16/11/2026)
-
-Corrigida a ordem das camadas dos Stories. O fundo da transição fica abaixo do texto e dos botões; a interface permanece visível durante a mudança de cores. A atualização para quem já publicou exige substituir apenas `app.js` na raiz do repositório.
+1. Validar contagem de posts/Reels com exportações reais anonimizadas, inclusive deduplicação.
+2. Testar ZIPs grandes em dispositivos lentos.
+3. Completar os guias com capturas de telas reais e atuais, com permissões adequadas.
+4. Preparar traduções para inglês e espanhol.

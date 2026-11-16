@@ -4,7 +4,6 @@
 body[data-theme="instagram"]{--theme-ink:#131022;--theme-accent:#eaa1fb;--theme-second:#ee638c;--theme-third:#f9a85a;--theme-paper:#e9d8f1;--theme-shadow:#b3337a40}
 body[data-theme="tiktok"]{--theme-ink:#080f14;--theme-accent:#76ebdf;--theme-second:#f65b74;--theme-third:#a6e9fc;--theme-paper:#d2f0ed;--theme-shadow:#20b4bc35}
 body[data-theme="youtube"]{--theme-ink:#160e13;--theme-accent:#ff9799;--theme-second:#d22b44;--theme-third:#fff0e9;--theme-paper:#f0d7da;--theme-shadow:#d4224635}
-body[data-theme="spotify"]{--theme-ink:#091612;--theme-accent:#84dba3;--theme-second:#239f70;--theme-third:#c2efd2;--theme-paper:#dbece1;--theme-shadow:#287b4a35}
 html{scroll-behavior:smooth}
 body{background:radial-gradient(ellipse 56vw 55vw at 88% 16%,color-mix(in srgb,var(--theme-second) 25%,transparent),transparent 73%),radial-gradient(ellipse 54vw 55vw at 5% 62%,color-mix(in srgb,var(--theme-accent) 12%,transparent),transparent 79%),var(--theme-ink);background-attachment:fixed;color:#f8f6f4;transition:background-color .3s ease}
 body::before{background:linear-gradient(90deg,transparent,var(--theme-second),var(--theme-accent),var(--theme-third),transparent)}
@@ -38,13 +37,10 @@ body::before{background:linear-gradient(90deg,transparent,var(--theme-second),va
 .platform-instagram .platform-art-center img{width:57px;height:57px}
 .platform-tiktok .platform-art-center{background:#0b0b11;border-radius:23px;box-shadow:-5px 4px 0 #25f4ee,5px -3px 0 #fe2c55}
 .platform-youtube .platform-art-center{border-radius:26px;background:#e51e35}
-.platform-spotify .platform-art-center{border-radius:50%;background:#1ed760}
-.platform-spotify .platform-art-center img{filter:brightness(0)}
-.platform-instagram .platform-art,.platform-tiktok .platform-art,.platform-youtube .platform-art,.platform-spotify .platform-art{background:transparent}
+.platform-instagram .platform-art,.platform-tiktok .platform-art,.platform-youtube .platform-art{background:transparent}
 .platform-instagram{background:linear-gradient(153deg,#3e1b4a,#b3426f 62%,#ed9857)}
 .platform-tiktok{background:linear-gradient(157deg,#151823,#173e45 60%,#29303d)}
 .platform-youtube{background:linear-gradient(153deg,#461b26,#ad3346 56%,#d85b56)}
-.platform-spotify{background:linear-gradient(155deg,#103221,#165239 60%,#32815b)}
 .platform-after{display:block;border-top:1px solid #ffffff24;padding:22px 0}
 .platform-after strong{font-size:19px;display:block}
 .platform-after span{font-size:13px;opacity:.7;display:block;margin-top:4px}

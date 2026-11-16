@@ -68,14 +68,14 @@
       ],
       source: 'https://support.google.com/accounts/answer/3024190'
     },
-    spotify: {
-      detail: 'Solicite seus dados diretamente nas configurações de privacidade da conta Spotify.',
+    reddit: {
+      detail: 'O Reddit prepara uma cópia dos seus dados por solicitação; o download pode levar até 30 dias.',
       screens: [
-        ['Sua conta', 'Privacidade', 'Abra as configurações de privacidade da conta Spotify pelo navegador'],
-        ['Baixar dados', 'Histórico de streaming ampliado', 'Selecione o histórico ampliado para incluir mais anos'],
-        ['Solicitação', 'Confirmar pedido', 'Confirme e aguarde o link para baixar os arquivos JSON']
+        ['Reddit', 'Configurações → dados', 'No navegador, acesse reddit.com/settings/data-request e entre na conta'],
+        ['Solicitação', 'Escolha o período', 'Solicite o histórico para o intervalo desejado, quando houver essa opção'],
+        ['Caixa de entrada', 'Baixe o ZIP', 'O Reddit enviará uma mensagem com o link quando o arquivo estiver pronto']
       ],
-      source: 'https://support.spotify.com/article/understanding-your-data/'
+      source: 'https://support.reddithelp.com/hc/en-us/articles/360043048352-How-do-I-request-a-copy-of-my-Reddit-data-and-information'
     }
   };
   function updateExportGuide() {

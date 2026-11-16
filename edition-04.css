@@ -1,0 +1,92 @@
+/* REEECAP — edição 04 | revisão das observações gravadas.
+   Limita texturas decorativas; sem conexão externa nem fontes remotas. */
+:root{--review-white:#fffdfc}
+.platform-reddit{--platform-accent:#ff4500}
+.platform-reddit .platform-art{background:linear-gradient(145deg,#ff6a37 0%,#ff4500 54%,#d42f00 100%)}
+.platform-reddit .platform-art-center{background:#fffd}
+.platform-reddit .platform-art-center img{filter:none}
+/* Story: frame cinematográfico arredondado APENAS no desktop */
+.recapop-shell{width:min(100%,520px);height:min(94dvh,910px);border-radius:24px;box-shadow:0 36px 120px #000c}
+.story-header{padding:0 24px;gap:8px}
+.story-header .story-logo{margin-right:auto}
+.story-controls{gap:9px}
+.story-controls button{width:38px;height:38px;min-width:38px;min-height:38px;display:grid;place-items:center;border:1px solid #ffffff52;background:#1c103025;border-radius:50%;font-size:20px;line-height:1}
+.story-controls button svg{display:block}
+.story-bottom{padding:18px 24px 24px}
+.story-bottom-actions{width:100%;justify-content:space-between}
+.story-bottom-actions button{display:flex;align-items:center;justify-content:center;gap:8px;background:#160b271e;backdrop-filter:blur(9px);border:1px solid #fff6;min-height:43px;padding:12px 17px;font-size:12px;font-weight:750;letter-spacing:0;border-radius:12px}
+.story-bottom-actions #openDashboard{background:white;color:#201336;border-color:white;font-weight:850}
+.story-bottom-actions button svg{display:block;flex-shrink:0}
+.story-visual{display:flex;align-items:center;justify-content:flex-start;text-align:left;padding:118px 38px 115px;pointer-events:none}
+.story-content{width:100%;min-height:460px;display:flex;align-items:center;justify-content:flex-start}
+.story-main{width:100%;position:relative;z-index:2}
+.story-icon{display:flex;align-items:center;justify-content:flex-start;width:76px;height:76px;margin-bottom:22px}
+.story-icon svg{display:block;width:62px;height:62px;filter:drop-shadow(0 15px 24px #22082730)}
+.story-mark{font-size:74px;font-weight:900;line-height:1}
+.story-eyebrow{font-size:11px;letter-spacing:.19em;line-height:1.5;margin:4px 0 18px;text-align:left}
+.story-number{font-size:clamp(76px,16vw,116px);margin:0 0 12px;letter-spacing:-.085em;line-height:.97;text-align:left}
+.story-headline{font-size:clamp(32px,7vw,50px);margin:18px 0 12px;line-height:1.08;max-width:440px;text-align:left}
+.story-body{font-size:15px;max-width:370px;line-height:1.57;margin:12px 0 0;text-align:left}
+.story-content.kind-intro .story-headline{font-size:clamp(40px,8vw,66px)}
+.story-content.kind-intro .story-mark,.story-content.kind-end .story-mark{font-size:86px;letter-spacing:-.1em}
+.ambient-posts{position:absolute;right:-58px;top:4%;bottom:2%;width:51%;pointer-events:none;overflow:hidden;z-index:0;opacity:.31;filter:blur(.15px)}
+.ambient-posts span{position:absolute;width:98%;height:43%;border:1px solid #ffffff78;background:linear-gradient(128deg,#ffffff22,#ffffff05);border-radius:19px;box-shadow:0 12px 45px #15103c36;transform:rotate(-11deg)}
+.ambient-posts span:first-child{top:-18%;right:-25%;transform:rotate(12deg)}
+.ambient-posts span:nth-child(2){top:29%;right:-10%;transform:rotate(-12deg)}
+.ambient-posts span:nth-child(3){top:75%;right:-36%;transform:rotate(14deg)}
+.demo-label{display:inline-block;margin-top:18px;font-weight:750;font-size:11px;border-bottom:1px solid #ffffffc6;padding-bottom:4px}
+.story-chart{justify-content:flex-start;max-width:330px;height:100px}
+.story-chart span.hot{background:#fff}
+/* Better information density and readability in dashboard */
+.dashboard-body .comments-panel{margin-top:20px;padding:26px 28px}
+.comments-heading{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
+.comments-heading h3{font-size:24px;letter-spacing:-.035em;margin:0 0 6px}
+.comments-heading p,.comments-note{font-size:12px;line-height:1.6;color:#c5b7d0;margin:0}
+.comments-total{font-size:12px;font-weight:700;white-space:nowrap;color:#d4bbdc}
+.comments-tools{display:flex;align-items:center;gap:12px;margin:20px 0 14px}
+.comments-tools input{flex:1;min-width:0;height:44px;border:1px solid #fff3;background:#f6f1ff0d;padding:12px 14px;color:white;border-radius:10px;font:inherit;outline-color:#ce8fd0}
+.comments-tools input::placeholder{color:#a89db4}
+.comments-tools button,.comments-more,.resume-recap{padding:12px 16px;min-height:44px;border-radius:10px;border:1px solid #ffffff39;background:#ffffff16;color:white;font-weight:700;cursor:pointer}
+.comments-list{display:grid;gap:8px}
+.comment-record{border-bottom:1px solid #ffffff1f;padding:13px 2px 16px}
+.comment-record time{font-size:11px;color:#b2a1c2}
+.comment-record p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#fff;margin:6px 0 0;line-height:1.55}
+.comments-more{margin-top:12px;width:100%}
+.comments-note{padding-top:18px}
+/* Accessibility: keep this counter available to screen readers, not as visual clutter */
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.resume-recap{display:flex;align-items:center;justify-content:center;margin:14px 0 4px;gap:8px;max-width:440px;color:#332044;background:#f3e5f3;border:0}
+.resume-recap[hidden],.comments-panel[hidden],.comments-more[hidden]{display:none!important}
+/* Prevent sticky dock from hiding actions */
+@media(max-width:610px){
+ .recapop-shell{width:100%;height:100dvh;max-height:none;border-radius:0;box-shadow:none}
+ .story-header{height:70px;padding:0 15px}
+ .story-controls{gap:6px}
+ .story-controls button{width:36px;height:36px;min-width:36px;min-height:36px}
+ .story-visual{padding:105px 30px 102px}
+ .story-content{min-height:400px}
+ .story-icon{width:65px;height:65px;margin-bottom:10px}
+ .story-icon svg{width:50px;height:50px}
+ .story-eyebrow{margin-bottom:16px}
+ .story-number{font-size:clamp(70px,21vw,100px)}
+ .story-headline{font-size:clamp(34px,9vw,47px)}
+ .story-body{font-size:14px}
+ .ambient-posts{width:60%;right:-55px;opacity:.2}
+ .story-bottom{padding:14px 14px max(22px,env(safe-area-inset-bottom))}
+ .story-bottom-actions{gap:8px}
+ .story-bottom-actions button{font-size:11px;min-width:0;flex:1;padding:10px 8px}
+ .dashboard-body .comments-panel{padding:20px 16px}
+ .comments-heading h3{font-size:22px}
+ .comments-tools{flex-wrap:wrap}
+ .comments-tools input,.comments-tools button{width:100%;flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce){.story-content,.ambient-posts span{animation:none!important}}
+
+.story-icon img{display:block;width:74px;height:74px;object-fit:contain;filter:brightness(0) invert(1);opacity:.97}
+.story-content.kind-end .story-icon img{filter:none;width:70px;height:70px}
+@media(max-width:610px){.story-icon img{width:62px;height:62px}}
+
+.resume-banner{display:flex;justify-content:flex-end;margin:0 auto 16px}.resume-banner .resume-recap{margin:0;width:auto;background:#f4dcf2;color:#351e39;border:1px solid #f9e6f2;font-size:12px;min-height:46px;box-shadow:none}
+@media(max-width:610px){.resume-banner{padding-top:0;justify-content:stretch}.resume-banner .resume-recap{width:100%}}
+
+.story-cover-mark{position:absolute;z-index:0;inset:-10% -85% -10% 40%;display:flex;align-items:center;justify-content:center;transform:rotate(-13deg);pointer-events:none;opacity:.075;filter:brightness(0) invert(1)}.story-cover-mark img{width:min(110vw,520px);height:auto;max-width:none}
