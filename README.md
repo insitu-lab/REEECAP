@@ -1,68 +1,119 @@
-# REEECAP 2.1 — versão de desenvolvimento (não é um lançamento final)
+<div align="center">
 
-REEECAP é uma retrospectiva visual criada a partir de **arquivos exportados pelo próprio usuário**. Esta edição é um site estático que roda o processamento de ZIP/JSON/CSV no navegador, por Web Worker. O código da área Premium não está incluído neste diretório.
+![REEECAP · capa do projeto](docs/media/cover.png)
 
-## Plataformas e dados
+### Seu ano na internet. Em retrospectiva.
 
-| Plataforma | Suporte local | Limites | 
-| --- | --- | --- |
-| Instagram | JSON: curtidas, salvos, comentários, posts/Reels/Stories, interações e relacionamentos quando reconhecidos | A exportação pode omitir atividades; não há acesso à conta nem como medir popularidade de comentários sem os dados correspondentes |
-| TikTok | JSON: histórico de vídeos, curtidas, favoritos, comentários e outras categorias reconhecidas | Os nomes/estruturas variam conforme o formato exportado |
-| YouTube | JSON Google Takeout: histórico de visualização e pesquisas | Cada registro não representa necessariamente um vídeo único |
-| Reddit | CSV: posts, comentários, votos, salvos conforme categorias reconhecidas | Atividades sem data não entram artificialmente nas estatísticas anuais |
+Uma experiência visual para transformar seus próprios dados de atividade digital em Stories, estatísticas e vídeos compartilháveis.
 
-Não há integração com Spotify nesta versão. A demonstração de cada rede tem dados fictícios e não mistura plataformas. O usuário deve selecionar na plataforma de origem apenas informações de atividade, evitando mensagens privadas, contatos, localização e credenciais.
+![Status: beta](https://img.shields.io/badge/status-beta-f396bb?style=flat-square)
+![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-8767d7?style=flat-square)
+![Idiomas](https://img.shields.io/badge/idiomas-PT%20%7C%20EN%20%7C%20ES-594a7a?style=flat-square)
+![Privacidade](https://img.shields.io/badge/dados-processamento%20local-a56cb0?style=flat-square)
 
-## Recursos implementados e testados
+**[Explorar o projeto](#visao-geral)** · **[Baixar](#baixar)** · **[Ver imagens](#previews)** · **[Instalar](#como-executar)**
 
-- Navegação por plataforma, guias de importação, relatório anual, Stories, painel de métricas e exportação de imagem/arquivo-resumo.
-- Tradução do site e relatórios em português, inglês e espanhol, com alteração durante a retrospectiva.
-- Tema escuro/claro, ajustes de espaçamento e responsividade (testes de largura em Chromium entre 320 e 1920 px).
-- Camadas decorativas contextualizadas (corações, avião de compartilhamento, rolos de vídeo, comentários em movimento, anéis de Stories). Sem fingir vídeos da conta do usuário.
-- Compositor de vídeo 9:16 com cenas selecionáveis, durações e tamanhos configuráveis; trilha original incluída ou música escolhida pelo usuário. Sem senha nem upload.
-- MP4/H.264 quando suportado pelo navegador, WebM VP9/Opus como alternativa. **Não há garantia de MP4 com som em todos os navegadores**.
-- JSON de métricas **agregadas**, intencionalmente sem comentários, para importar no Studio privado (`reeecap-studio-v1`).
-- Reconhecimento de categorias e reparação de casos típicos de caracteres UTF-8 mal codificados em textos exportados.
+</div>
 
-## Arquivos principais
+---
 
-- `index.html`, `style.css`, `atelier.css`, `edition-02.css` até `edition-06.css`: interface e revisões visuais.
-- `app.js`, `atelier.js`: fluxo da retrospectiva, importação, telas e relatórios.
-- `worker.js`: processamento local dos arquivos (inclui pako MIT para ZIP).
-- `locale-full.js`, `experience.js`, `experience.css`: traduções, tema e controles de acesso ao Studio (apenas link).
-- `video.js`: compositor de vídeo no navegador e exportação local.
-- `config.js`: link do Premium desativado até configuração do domínio protegido; não coloque segredos neste arquivo.
-- `CAPTURAS_E_FONTES.md`, `HISTORICO_REEECAP_2_0.md`, `ESTADO_DE_VALIDACAO.md`: fontes, decisões e pendências de lançamento.
+## Visão geral
 
-## Rodar localmente
+O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso às suas contas. É uma experiência independente inspirada na ideia de retrospectiva anual; **não é afiliado** a Instagram, TikTok, YouTube ou Reddit.
 
-Execute `python -m http.server 8000` na raiz deste diretório e abra `http://localhost:8000`. Não abra via `file://`, porque o Worker precisa de um servidor local. Para publicar o site gratuito no GitHub Pages, envie o **conteúdo** desta pasta (com `index.html` na raiz) e ative Pages no ramo `main`. O código Premium deve ser publicado **separadamente e protegido por autenticação**.
+- **Descubra seu ano:** curtidas, interações, vídeos assistidos, pesquisas e outros registros disponíveis nos arquivos.
+- **Veja seu recap:** Stories verticais com animações e prévia antes de compartilhar.
+- **Exporte o vídeo:** até 1080 × 1920, com música local ou trilha original; formato MP4 ou WebM conforme o navegador.
+- **Privacidade local:** o ZIP é lido no seu navegador; não envie senhas, mensagens privadas nem dados de outras pessoas.
 
-## Testes executáveis
+## Previews
 
-Na máquina que contém Chromium, Playwright, Python e ffprobe:
+<table>
+  <tr>
+    <td width="65%"><img src="docs/media/home-desktop.png" alt="Página inicial real do REEECAP no computador" /></td>
+    <td width="35%"><img src="docs/media/home-mobile.png" alt="Página inicial real no celular" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/video-export.png" alt="Compositor de vídeo com seleção de Stories e resolução" /></td>
+    <td><img src="docs/media/story-preview.png" alt="Prévia real de um Story" /></td>
+  </tr>
+</table>
 
-```sh
-python tests/test_real_browser.py
-python tests/test_locale.py
-python tests/test_audio_public.py
-python tests/test_story_art.py
-python tests/test_responsive.py
-python tests/test_big_zip.py
-python tests/test_png_parity.py
+<sub>Imagens reais da interface do REEECAP, capturadas no Chromium com **dados fictícios**. Não representam perfis reais de usuários.</sub>
+
+### Interface 2.3: tema claro e importação responsiva
+
+<table>
+  <tr>
+    <td width="65%"><img src="docs/media/home-light.png" alt="Página inicial revisada no modo claro, com logo preta e sem fundo escuro" /></td>
+    <td width="35%"><img src="docs/media/import-mobile.png" alt="Fluxo de importação no celular, com largura alinhada e botão visível" /></td>
+  </tr>
+</table>
+
+[Ver captura do formulário em tema claro](docs/media/import-light.png).
+
+## Baixar
+
+> **Versão de testes:** ainda há limitações que impedem anunciar o produto como concluído.
+
+**[⬇ Baixar o REEECAP 2.3 (site público, ZIP)](downloads/REEECAP-2.3-publico.zip)**
+
+O download acima está incluído no repositório e funciona mesmo antes de publicar uma GitHub Release. A instalação é um site estático; não é um aplicativo instalável para Windows. Em futuras versões, os pacotes podem ser publicados na seção **Releases** do GitHub para oferecer histórico e notas de versão.
+
+## Como executar
+
+1. Extraia o ZIP baixado.
+2. Dentro da pasta, execute `python -m http.server 8000`.
+3. Abra `http://localhost:8000` no navegador.
+4. Escolha uma rede social, abra a demonstração ou importe um arquivo ZIP/JSON/CSV exportado por você.
+
+Para publicar via GitHub Pages, envie os arquivos do diretório do site com `index.html` na raiz e ative **Settings → Pages → Deploy from a branch**.
+
+## Plataformas
+
+| Rede | Dados analisados quando presentes | Formato |
+|:--|:--|:--|
+| Instagram | Interações, curtidas, comentários, publicações e relacionamentos | JSON/ZIP |
+| TikTok | Curtidas, favoritos, histórico e comentários | JSON/ZIP |
+| YouTube | Visualizações e pesquisas do Takeout | JSON/ZIP |
+| Reddit | Posts, comentários, votos e salvos | CSV/ZIP |
+
+O REEECAP não inventa estatísticas quando a plataforma omite dados; formatos variam conforme o tipo de exportação e o idioma.
+
+## Música de qualidade, com os créditos certos
+
+A interface oferece links oficiais para **Legacy**, **Catalyst** e **Uprising**, trilhas do compositor **Scott Buckley**, licenciadas sob **Creative Commons Attribution 4.0**. O download da obra é feito no site do compositor, depois você seleciona o MP3 local para compor o vídeo. Não há redistribuição dos MP3 de terceiros neste repositório. A atribuição ao autor é necessária na publicação. [Detalhes e créditos](MUSICAS_E_LICENCAS.md).
+
+## Estado do projeto
+
+| Recurso | Estado |
+|:--|:--|
+| Stories e estatísticas, PT/EN/ES | Implementados, testes automatizados com dados sintéticos |
+| Renderização de vídeo com trilha | Implementada; depende de codec no navegador |
+| Prints de exportação | Referências visuais externas com fonte; carregamento somente após toque do visitante |
+| Arquivos exportados por contas reais | Ainda não cobertos pela bateria de testes |
+| Studio Premium | Separado do repositório público; autenticação/cobrança não ativadas |
+
+A documentação sobre requisitos pendentes está em [ESTADO_DE_VALIDACAO.md](ESTADO_DE_VALIDACAO.md). A documentação de privacidade está em [PRIVACIDADE.md](PRIVACIDADE.md).
+
+## Estrutura de código
+
+```text
+index.html             # interface do site
+app.js / worker.js     # fluxo e leitura local de arquivos
+video.js               # renderização e gravação 9:16
+atelier.js             # guias de exportação por plataforma
+locale-full.js         # textos PT/EN/ES
+assets/                # marca, ícones e trilha original
+docs/media/            # capturas reais do REEECAP para o README
+tests/                 # testes automatizados
+downloads/             # pacote ZIP público versionado
 ```
 
-Esses testes usam dados **sintéticos**, não são evidência de compatibilidade com toda e qualquer exportação real. O teste de ZIP grande verifica o processamento artificial de um arquivo de 400 MB no ambiente de desenvolvimento, e **não** a memória de um aparelho físico.
+## Licença e autoria
 
-## Limitações críticas para um lançamento
+O código do REEECAP é disponibilizado sob [MIT](LICENSE). O conteúdo de terceiros permanece sob as licenças e direitos de seus respectivos titulares. Veja [ATTRIBUTION.md](ATTRIBUTION.md), [MUSICAS_E_LICENCAS.md](MUSICAS_E_LICENCAS.md) e [CAPTURAS_E_FONTES.md](CAPTURAS_E_FONTES.md).
 
-1. Capturas *reais* e recentes dos tutoriais das quatro plataformas ainda não foram fornecidas ou licenciadas; os cartões atuais são identificados como diagramas, não prints. Ver `CAPTURAS_E_FONTES.md`.
-2. Precisam ser validadas exportações genuínas e anonimizadas de Instagram, TikTok, YouTube e Reddit, com formatos e idiomas diferentes.
-3. A exportação MP4 com áudio depende de codecs de cada navegador; no Chromium Linux testado, áudio+vídeo foi gerado como WebM. Postagem direta no Instagram e aparelhos Android/iOS reais ainda não foram testados.
-4. O Premium está em outro pacote; não há cobrança real nem autenticação sem Cloudflare Access configurado pelo proprietário. **Não publique ou venda acesso antes disso.**
-
-Nada é salvo automaticamente no servidor. Preferências visuais podem usar armazenamento local; arquivos originais e resultados pessoais ficam na memória da aba, até ela ser fechada. Ver `PRIVACIDADE.md`.
-
-## Licenças
-
-Código MIT. Componentes de terceiros e marcas em `ATTRIBUTION.md`; Instagram, TikTok, YouTube e Reddit pertencem aos respectivos titulares. REEECAP não é afiliado a essas empresas.
+<div align="center">
+  <sub>REEECAP · feito para reviver o que ficou no seu ano, não para coletar suas senhas.</sub>
+</div>

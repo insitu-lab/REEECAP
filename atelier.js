@@ -117,10 +117,11 @@
         ['Bandeja de entrada','Descarga el ZIP','Reddit enviará un enlace cuando esté preparado']]}
     }
   };
+  const externalExamples={"instagram": [{"url": "https://images.wondershare.com/drfone/article/2026/05/how-to-find-deleted-instagram-post-10.jpg", "source": "https://drfone.wondershare.com/app-recovery/how-to-find-deleted-instagram-post.html", "label": "Central de Contas e exportação (Wondershare, 2026)", "step": 1}, {"url": "https://www.multcloud.com/screenshot/en/others-1/instagram/choose-all-available-information.png", "source": "https://www.multcloud.com/explore/what-is-included-in-instagram-data-download-0121-ac.html", "label": "Seleção das informações (MultCloud)", "step": 2}], "tiktok": [{"url": "https://storage.ghost.io/c/fb/a8/fba8736e-797b-43bb-bcba-040fb8dcfebb/content/images/size/w600/2025/01/TikTok-Account-Settings.png", "source": "https://www.kapwing.com/resources/how-to-download-all-tiktok-videos-and-data-in-one-individually/", "label": "Configurações de exportação (Kapwing)", "step": 0}, {"url": "https://storage.ghost.io/c/fb/a8/fba8736e-797b-43bb-bcba-040fb8dcfebb/content/images/size/w1600/2025/01/TikTok-Data-Request-Configuration.png", "source": "https://www.kapwing.com/resources/how-to-download-all-tiktok-videos-and-data-in-one-individually/", "label": "Categorias e JSON (Kapwing)", "step": 2}], "youtube": [{"url": "https://resource.gbyte.com/20250821/large/google-takeout-exporte-video-youtube.webp", "source": "https://www.gbyte.com/fr/blog/recuperer-videos-youtube", "label": "YouTube no Google Takeout (Gbyte)", "step": 1}], "reddit": [{"url": "https://www.expressvpn.com/wp-ws-cache/uploads-expressvpn/2025/10/2-8.png", "source": "https://www.expressvpn.com/blog/delete-reddit-account/", "label": "Formulário real do Reddit (ExpressVPN)", "step": 1}]};
   const guideUi={
-    pt:{open:'Abrir configurações',disclaimer:'Esquemas ilustrativos dos menus. Os nomes podem variar por versão do aplicativo.',source:'Consultar a ajuda oficial de '},
-    en:{open:'Open settings',disclaimer:'Illustrative diagrams, not real screenshots. Menu names may vary by app version.',source:'See official help for '},
-    es:{open:'Abrir configuración',disclaimer:'Diagramas ilustrativos, no capturas reales. Los menús pueden variar según la versión.',source:'Consultar ayuda oficial de '}
+    pt:{open:'Abrir configurações',disclaimer:'Capturas externas reais quando disponíveis; os demais cartões são esquemas. Imagens e menus podem mudar.',source:'Consultar a ajuda oficial de '},
+    en:{open:'Open settings',disclaimer:'Real third-party screenshots where available; other cards are diagrams. Menus and images may change.',source:'See official help for '},
+    es:{open:'Abrir configuración',disclaimer:'Capturas reales de terceros cuando existen; las otras tarjetas son esquemas. Los menús pueden cambiar.',source:'Consultar ayuda oficial de '}
   };
   function updateExportGuide() {
     const active = $('.platform-card.active')?.dataset.platform || 'instagram';
@@ -143,6 +144,26 @@
         const num=document.createElement('b');num.textContent=String(i+1).padStart(2,'0');
         const brand=document.createElement('strong');brand.textContent=item[0];
         head.append(num,brand);
+        const ref=(externalExamples[active]||[]).find(entry=>entry.step===i);
+        if(ref){
+          // No third-party requests are made unless the visitor explicitly opts in.
+          const visual=document.createElement('div');visual.className='guide-example-wrapper';
+          const load=document.createElement('button');load.type='button';load.className='guide-load-button';
+          const isPt=lang==='pt',isEs=lang==='es';
+          load.textContent=isPt?'Ver captura real':isEs?'Ver captura real':'Load real screenshot';
+          const credit=document.createElement('a');credit.className='guide-example-credit';credit.href=ref.source;credit.target='_blank';credit.rel='noopener noreferrer';
+          credit.textContent=(isPt?'Fonte: ':isEs?'Fuente: ':'Source: ')+ref.label;
+          const caution=document.createElement('small');caution.className='guide-external-warning';
+          caution.textContent=isPt?'A imagem só será carregada após seu toque, diretamente do site da fonte.':isEs?'La imagen se carga desde la fuente solo cuando pulses el botón.':'Only loads from the publisher after you tap.';
+          load.addEventListener('click',()=>{
+            load.disabled=true;load.textContent=isPt?'Carregando captura…':isEs?'Cargando captura…':'Loading screenshot…';
+            const photo=document.createElement('img');photo.className='guide-example-image';photo.loading='eager';photo.decoding='async';photo.referrerPolicy='no-referrer';photo.alt=ref.label;
+            photo.addEventListener('load',()=>{load.remove();visual.classList.add('loaded')},{once:true});
+            photo.addEventListener('error',()=>{photo.remove();load.disabled=false;load.textContent=isPt?'Imagem indisponível — abrir fonte abaixo':isEs?'Imagen no disponible — abre la fuente':'Screenshot unavailable — open source';},{once:true});
+            visual.prepend(photo);photo.src=ref.url;
+          });
+          visual.append(load,caution,credit);screen.append(visual);
+        }
         const chip=document.createElement('div');chip.className='guide-screen-highlight';chip.textContent=item[1];
         const tip=document.createElement('p');tip.textContent=item[2];
         screen.append(head,chip,tip);pages.append(screen);

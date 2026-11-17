@@ -74,3 +74,13 @@
 @media(min-width:611px) and (max-width:880px){.hero h1{white-space:normal;font-size:clamp(42px,6vw,57px)!important}.hero-right{overflow:hidden;border-radius:16px}}
 @media(min-width:881px) and (max-width:1180px){.hero-right{max-width:100%;overflow:hidden;border-radius:16px}}
 @media(min-width:881px){.hero-right{max-width:100%;overflow:hidden}}
+
+/* Evidence-backed guidance, with publisher-hosted reference images and visible attribution. */
+.guide-example-link{display:grid;gap:6px;text-decoration:none;color:inherit;border:1px solid #ffffff28;border-radius:10px;overflow:hidden;background:#201a2a}
+.guide-example-image{display:block;width:100%;height:170px;object-fit:contain;background:#fbfaf9}
+.guide-example-credit{font-size:10px;line-height:1.4;color:#ead6e5;padding:0 10px 10px}
+.guide-example-link:hover{border-color:#eda2d2}
+.guide-screen:has(.guide-example-link){min-height:265px}
+@media(max-width:610px){.guide-example-image{height:190px}.guide-screen:has(.guide-example-link){min-height:285px}}
+
+.reeecap-music-library{margin:18px 0;padding:16px;border:1px solid #f5b6d153;border-radius:13px;background:linear-gradient(130deg,#c97bba17,#805ac018)}.reeecap-music-library strong{font-size:13px;color:#fff}.reeecap-music-library p{font-size:12px!important;margin:7px 0!important}.reeecap-music-links{display:flex;gap:7px;flex-wrap:wrap}.reeecap-music-links a{font-size:12px;color:#ffc5de;background:#ffb2d713;border:1px solid #ffa6d43d;padding:7px 10px;border-radius:8px;font-weight:750;text-decoration:none}.reeecap-music-links a:hover{background:#ffa6d42a}.reeecap-music-library small{display:block;font-size:10px;color:#c2a9c9;margin-top:10px}
