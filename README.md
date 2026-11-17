@@ -19,7 +19,7 @@ Uma experiência visual para transformar seus próprios dados de atividade digit
 
 ## Visão geral
 
-O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso às suas contas. É uma experiência independente inspirada na ideia de retrospectiva anual; **não é afiliado** a Instagram, TikTok, YouTube ou Reddit.
+O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso às suas contas. É uma experiência independente inspirada na ideia de retrospectiva anual; **não é afiliado** a Instagram, TikTok, YouTube, Reddit, Spotify ou Facebook.
 
 - **Descubra seu ano:** curtidas, interações, vídeos assistidos, pesquisas e outros registros disponíveis nos arquivos.
 - **Veja seu recap:** Stories verticais com animações e prévia antes de compartilhar.
@@ -30,8 +30,8 @@ O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso �
 
 <table>
   <tr>
-    <td width="65%"><img src="docs/media/home-desktop.png" alt="Página inicial real do REEECAP no computador" /></td>
-    <td width="35%"><img src="docs/media/home-mobile.png" alt="Página inicial real no celular" /></td>
+    <td width="65%"><img src="docs/media/v3-home-desktop.png" alt="Página inicial real do REEECAP no computador" /></td>
+    <td width="35%"><img src="docs/media/v3-home-mobile.png" alt="Página inicial real no celular" /></td>
   </tr>
   <tr>
     <td><img src="docs/media/video-export.png" alt="Compositor de vídeo com seleção de Stories e resolução" /></td>
@@ -41,7 +41,7 @@ O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso �
 
 <sub>Imagens reais da interface do REEECAP, capturadas no Chromium com **dados fictícios**. Não representam perfis reais de usuários.</sub>
 
-### Interface 2.3: tema claro e importação responsiva
+### Interface responsiva e nova biblioteca de estilos
 
 <table>
   <tr>
@@ -52,11 +52,17 @@ O REEECAP importa arquivos que você exporta das plataformas, sem pedir acesso �
 
 [Ver captura do formulário em tema claro](docs/media/import-light.png).
 
+### Três estilos de vídeo com composições próprias
+
+<table><tr><td><img src="docs/media/v3-neon.png" alt="Tema Neon Motion" /><br/>Neon Motion</td><td><img src="docs/media/v3-noir.png" alt="Tema Noir Editorial" /><br/>Noir Editorial</td><td><img src="docs/media/v3-paper.png" alt="Tema Paper Cut" /><br/>Paper Cut</td></tr></table>
+
+As imagens são capturas do renderizador de vídeo, com **dados sintéticos** usados apenas nos testes. O mesmo renderizador compõe o vídeo exportado. A cor de destaque, os Stories, a duração e a trilha podem ser selecionados pelo usuário.
+
 ## Baixar
 
 > **Versão de testes:** ainda há limitações que impedem anunciar o produto como concluído.
 
-**[⬇ Baixar o REEECAP 2.3 (site público, ZIP)](downloads/REEECAP-2.3-publico.zip)**
+**[Baixar REEECAP 3.0 — site público (.zip)](downloads/REEECAP-3.0-publico.zip)**
 
 O download acima está incluído no repositório e funciona mesmo antes de publicar uma GitHub Release. A instalação é um site estático; não é um aplicativo instalável para Windows. Em futuras versões, os pacotes podem ser publicados na seção **Releases** do GitHub para oferecer histórico e notas de versão.
 
@@ -77,8 +83,12 @@ Para publicar via GitHub Pages, envie os arquivos do diretório do site com `ind
 | TikTok | Curtidas, favoritos, histórico e comentários | JSON/ZIP |
 | YouTube | Visualizações e pesquisas do Takeout | JSON/ZIP |
 | Reddit | Posts, comentários, votos e salvos | CSV/ZIP |
+| Spotify | Reprodução musical, episódios e duração real agregada dos registros | JSON/ZIP (básico e ampliado) |
+| Facebook | Posts, comentários e reações datadas, quando identificáveis no export | JSON/ZIP (suporte experimental) |
 
-O REEECAP não inventa estatísticas quando a plataforma omite dados; formatos variam conforme o tipo de exportação e o idioma.
+O REEECAP não inventa estatísticas quando a plataforma omite dados; formatos variam conforme o tipo de exportação e o idioma. Se você importar um arquivo de outra rede, o site só identifica automaticamente a rede quando o nome dos arquivos é inequívoco. Dados privados como mensagens são descartados do processamento.
+
+O Spotify publica as diferenças entre o histórico normal e o ampliado no [guia oficial](https://support.spotify.com/article/understanding-your-data/); o Facebook/Instagram usam a [Central de Contas da Meta](https://about.fb.com/news/2023/10/manage-your-information-across-apps/).
 
 ## Música de qualidade, com os créditos certos
 
@@ -88,13 +98,14 @@ A interface oferece links oficiais para **Legacy**, **Catalyst** e **Uprising**,
 
 | Recurso | Estado |
 |:--|:--|
-| Stories e estatísticas, PT/EN/ES | Implementados, testes automatizados com dados sintéticos |
+| Stories e estatísticas, PT/EN/ES | Implementados para seis plataformas com testes sintéticos, sem validar todas as variantes de exportações reais |
 | Renderização de vídeo com trilha | Implementada; depende de codec no navegador |
-| Prints de exportação | Referências visuais externas com fonte; carregamento somente após toque do visitante |
+| Prints de exportação | Capturas reais de terceiros nas etapas verificadas, com crédito e carregamento apenas após toque; etapas restantes são diagramas explicitamente indicados |
 | Arquivos exportados por contas reais | Ainda não cobertos pela bateria de testes |
-| Studio Premium | Separado do repositório público; autenticação/cobrança não ativadas |
+| Personalização visual do vídeo gratuito | Três temas com composição distinta e cor de destaque, duração e seleção de Stories |
+| Studio Premium | Editor privado separado; autenticação/cobrança não ativadas |
 
-A documentação sobre requisitos pendentes está em [ESTADO_DE_VALIDACAO.md](ESTADO_DE_VALIDACAO.md). A documentação de privacidade está em [PRIVACIDADE.md](PRIVACIDADE.md).
+A documentação sobre requisitos pendentes está em [ESTADO_DE_VALIDACAO.md](ESTADO_DE_VALIDACAO.md). Uma análise de concorrência e planejamento por prioridade está em [ESTRATEGIA_E_EVOLUCAO.md](ESTRATEGIA_E_EVOLUCAO.md). A documentação de privacidade está em [PRIVACIDADE.md](PRIVACIDADE.md).
 
 ## Estrutura de código
 

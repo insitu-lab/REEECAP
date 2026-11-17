@@ -19,6 +19,12 @@ const opts = {
  youtube:{label:'YouTube',color:'#ff4d69',url:'https://takeout.google.com/',
   steps:['Abra o Google Takeout e desmarque todos os produtos.', 'Marque somente YouTube e YouTube Music ou Minha atividade → YouTube, se o histórico estiver nessa seção. Inclua histórico de vídeos e escolha JSON quando oferecido.', 'Crie a exportação e importe o ZIP. O REEECAP lê arquivos JSON de histórico de visualização e pesquisa.'],
   wanted:['Histórico de vídeos assistidos'],optional:['Histórico de pesquisas'],no:'Gmail, Google Fotos, contatos, localização e arquivos de vídeo.'},
+ facebook:{label:'Facebook',color:'#1877f2',url:'https://accountscenter.facebook.com/info_and_permissions/',
+  steps:['No Facebook, acesse Configurações → Central de Contas → Suas informações e permissões → Exportar suas informações.', 'Selecione publicações, comentários e curtidas/reactions disponíveis. Escolha apenas as categorias necessárias; não selecione mensagens.', 'Selecione formato JSON, o período desejado e baixe o ZIP quando a Meta disponibilizar.'],
+  wanted:['Publicações com datas','Comentários feitos','Curtidas e reações registradas'],optional:['Itens salvos, se incluídos'],no:'Mensagens, contatos, senhas, localização, compras e informações de segurança não são lidas.'},
+ spotify:{label:'Spotify',color:'#1ed760',url:'https://www.spotify.com/account/privacy/',
+  steps:['Entre na página de privacidade da sua conta Spotify pelo navegador.', 'Em Baixar seus dados, solicite Histórico de streaming ampliado (Extended Streaming History). O histórico básico também pode funcionar, mas cobre menos tempo.', 'Quando o Spotify enviar os arquivos, importe o ZIP ou os JSONs Streaming_History / StreamingHistory.'],
+  wanted:['Histórico de reproduções','Duração de reprodução em milissegundos','Nome da faixa e artista (quando disponível)'],optional:['Episódios e podcasts'],no:'Pagamentos, e-mail, endereço, dispositivos, IP e dados de conta não são necessários.'},
  reddit:{label:'Reddit',color:'#ff5c2b',url:'https://www.reddit.com/settings/data-request',
   steps:['Entre em reddit.com/settings/data-request pelo navegador e solicite uma cópia dos dados da sua conta.', 'Escolha o intervalo de datas desejado, se estiver disponível. O Reddit pode enviar um ZIP com vários arquivos CSV.', 'Quando receber o link pela caixa de entrada do Reddit, baixe o ZIP e importe aqui. Não é preciso enviar mensagens privadas.'],
   wanted:['Publicações e comentários','Votos positivos e negativos','Posts e comentários salvos'],optional:['Comunidades seguidas'],no:'Mensagens privadas, bate-papos, informações de login, IP e localização. O REEECAP ignora essas categorias.'}
@@ -26,7 +32,7 @@ const opts = {
 let overlayHistoryOpen=false;
 const resultsByPlatform=new Map();
 let platform='instagram',current=null,year=null,stories=[],index=0,playing=false,tickId=null,elapsed=0,stepMs=7200,warning=[],backdropReady=false,backdropLayer=0,backdropTimer=null;
-const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Posts no feed','Posts identificados no feed'],reels:['◉','Reels publicados','Reels identificados'],storyPosts:['◎','Stories publicados','Stories publicados identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],downvotes:['−','Votos negativos','Votos negativos encontrados']};
+const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Posts no feed','Posts identificados no feed'],reels:['◉','Reels publicados','Reels identificados'],storyPosts:['◎','Stories publicados','Stories publicados identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],downvotes:['−','Votos negativos','Votos negativos encontrados'],listens:['♫','Reproduções musicais','Registros de reprodução de faixas (inclui reproduções parciais)'],podcasts:['◉','Episódios reproduzidos','Registros de episódios identificados'],minutes:['◷','Minutos de reprodução','Tempo acumulado de áudio encontrado no arquivo, não tempo de tela']};
 function selectPlatform(next){
  if(!opts[next])return;
  const changed=platform!==next;platform=next;
@@ -68,14 +74,17 @@ function buildStats(){
   const d=new Date(e.time);if(!Number.isFinite(d.getTime()))continue;
   months[d.getUTCMonth()]++;hours[d.getUTCHours()]++;activeDays.add(e.time.slice(0,10));
 
+  if(e.type==='listens'||e.type==='podcasts'){ms+=Math.max(0,Number(e.duration)||0);}
+  if(e.meta&&e.type==='listens'){const key=e.meta;leaders.set(key,(leaders.get(key)||0)+1);}
   if(e.label&&(['likes','saved'].includes(e.type))){const key=e.label;leaders.set(key,(leaders.get(key)||0)+1);}
  }
+ counts.minutes=Math.floor(ms/60000);
  const ordered=[...leaders].sort((a,b)=>b[1]-a[1]).slice(0,6);
  const busiest=months.indexOf(Math.max(...months));
  return {events,counts,months,hours,ordered,ms,activeDays:activeDays.size,busiest};
 }
 function activeTypes(){return Object.keys(metricInfo).filter(k=>current?.seen.includes(k));}
-function platformPalette(){return {instagram:['#622cb5','#ee4c98'],tiktok:['#0d1929','#c32075'],youtube:['#8e143d','#e24544'],reddit:['#ac2808','#fa6332']}[platform]||['#622cb5','#ee4c98'];}
+function platformPalette(){return {instagram:['#622cb5','#ee4c98'],tiktok:['#0d1929','#c32075'],youtube:['#8e143d','#e24544'],reddit:['#ac2808','#fa6332'],spotify:['#063e2f','#12a466'],facebook:['#102853','#1877f2']}[platform]||['#622cb5','#ee4c98'];}
 function buildStories(){
  const texts={pt:{time:'SUA LINHA DO TEMPO',month:'O mês mais movimentado',day:'VOCÊ ESTEVE POR AQUI',dayNote:'Dias diferentes com ao menos uma atividade registrada.',ending:'FIM? SÓ DO ANO.',endTitle:'Seu ano não cabia em um story.',endDesc:'Compartilhe apenas as estatísticas que quiser. Seus arquivos continuam no seu aparelho.'},en:{time:'YOUR TIMELINE',month:'Your busiest month',day:'YOU WERE HERE',dayNote:'Different days with at least one recorded activity.',ending:'THE END? ONLY OF THE YEAR.',endTitle:'Your year was bigger than one Story.',endDesc:'Share only the stats you choose. Your files stay on your device.'},es:{time:'TU CRONOLOGÍA',month:'Tu mes más activo',day:'ESTUVISTE AQUÍ',dayNote:'Días diferentes con al menos una actividad registrada.',ending:'¿EL FIN? SOLO DEL AÑO.',endTitle:'Tu año no cabía en una historia.',endDesc:'Comparte solo las estadísticas que quieras. Tus archivos permanecen en tu dispositivo.'}}[language()]||{};
  const s=buildStats(),n=Number(year);const brandColors=platformPalette();stories=[{kind:'intro',eyebrow:`${opts[platform].label.toUpperCase()} / ${language()==='en'?'RECAP':language()==='es'?'RETROSPECTIVA':'RETROSPECTIVA'}`,title:language()==='en'?`What did ${year} leave behind?`:language()==='es'?`¿Qué dejó ${year}?`:`O que ficou de ${year}?`,body:language()==='en'?`These are the ${opts[platform].label} records found in your export.`:language()==='es'?`Estos son los registros de ${opts[platform].label} encontrados en tu exportación.`:`Estes são os registros de ${opts[platform].label} encontrados na sua exportação.`,symbol:'',color:brandColors}];
@@ -188,6 +197,8 @@ function downloadComments(){
 
 function renderDashboard(){
  const s=buildStats();
+ const topHeading=$('topAccounts')?.closest('article')?.querySelector('h3');
+ if(topHeading)topHeading.textContent=platform==='spotify'?({pt:'Artistas mais reproduzidos',en:'Most-played artists',es:'Artistas más escuchados'})[language()]:({pt:'Contas com que você mais interagiu',en:'Accounts you interacted with the most',es:'Cuentas con las que más interactuaste'})[language()];
  $('dashboardYearLabel').textContent=year;
  const undated=current.undatedCounts||{};const undatedText=Object.entries(undated).filter(([,n])=>n>0).map(([k,n])=>(metricInfo[k]?metric(k)[0]:k)+': '+fmt(n)).join(' · ');
  $('coverageNote').textContent=`${current.demo?l('demo','DEMONSTRAÇÃO COM DADOS FICTÍCIOS. '):''}${fmt(s.events.length)} ${l('dated','atividades com data em ')}${year} · ${opts[platform].label}. ${undatedText?l('undated','Registros SEM data, não atribuídos a ')+year+': '+undatedText+'. ':''}${l('noZero','Dados ausentes não são considerados zero. Horários em UTC.')} ${current.parseErrors?l('errors','Alguns arquivos não puderam ser interpretados.'):''}`;
@@ -212,7 +223,7 @@ function error(message){$('processing').classList.add('hidden');$('errorBox').te
 function analyzeFiles(files){
  if(!files?.length)return;
  if(!window.Worker){error(l('workerUnsupported','Seu navegador não suporta processamento de arquivos em segundo plano.'));return;}
- const requestedPlatform=platform;const w=new Worker('./worker.js');let completed=false;
+ const requestedPlatform=platform;const w=new Worker('./worker.js');let completed=false;warning=[];
  $('errorBox').classList.add('hidden');$('processing').classList.remove('hidden');$('processingFill').style.width='1%';$('processingTitle').textContent=l('read','Lendo seus dados de ')+opts[platform].label+'...';$('processingDetail').textContent=l('local','Os arquivos estão sendo analisados neste aparelho.');
  w.onmessage=e=>{const v=e.data;
  if(v.kind==='progress'){$('processingFill').style.width=Math.round(4+95*v.current/Math.max(1,v.total))+'%';$('processingDetail').textContent=`${language()==='en'?'File':language()==='es'?'Archivo':'Arquivo'} ${v.current+1} ${language()==='en'?'of':'de'} ${v.total}: ${v.name.split('/').pop()}`;}
@@ -226,7 +237,7 @@ function analyzeFiles(files){
 function demo(fromHome=false){
  // A prévia da home acompanha a rede que ela mostra; no estúdio usa a rede escolhida.
  if(fromHome && opts[document.body.dataset.theme])selectPlatform(document.body.dataset.theme);
- const types=platform==='reddit'?['posts','comments','likes','saved','downvotes']:platform==='youtube'?['watched','searches']:platform==='tiktok'?['watched','likes','saved','shares','comments']:['likes','saved','comments','stories','following','posts'];
+ const types=platform==='spotify'?['listens','podcasts']:platform==='facebook'?['posts','comments','likes','saved']:platform==='reddit'?['posts','comments','likes','saved','downvotes']:platform==='youtube'?['watched','searches']:platform==='tiktok'?['watched','likes','saved','shares','comments']:['likes','saved','comments','stories','following','posts'];
  const events=[],n=new Date().getUTCFullYear();for(let i=0;i<950;i++){
  const t=types[Math.floor(Math.abs(Math.sin(i*3.18)*types.length))%types.length];const day=1+i%27,month=i%12,hr=i%24;
  events.push({type:t,time:new Date(Date.UTC(n,month,day,hr,0,0)).toISOString(),label:t==='listens'?['Exemplo de artista','Outro artista'][i%2]:'',meta:'',duration:t==='listens'?200000:0});

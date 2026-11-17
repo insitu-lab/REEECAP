@@ -16,10 +16,10 @@ function drawText(ctx,str,x,y,maxW,lineH,maxLines=3){
  });return lines.length;
 }
 function rounded(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
-function ornaments(ctx,slide,ms){
+function ornaments(ctx,slide,ms,ink="#fff"){
  // Genre-specific motion language: no fake videos, user identities or fabricated metrics.
  const kind=slide.metricKey||slide.kind, t=ms/1000;
- ctx.save();ctx.globalAlpha=.20;ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.fillStyle='#fff';
+ ctx.save();ctx.globalAlpha=.20;ctx.lineWidth=4;ctx.strokeStyle=ink;ctx.fillStyle=ink;
  if(kind==='likes'){
   for(let i=0;i<9;i++){const x=110+(i%3)*200+Math.sin(t*.9+i)*25,y=1050+((i*103)%720)-((t*24+i*31)%400);ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(i+t)*.18);ctx.beginPath();ctx.moveTo(0,13);ctx.bezierCurveTo(-60,-18,-20,-54,0,-28);ctx.bezierCurveTo(20,-54,60,-18,0,13);ctx.stroke();ctx.restore();}
  }else if(kind==='shares'){
@@ -47,36 +47,55 @@ function ornaments(ctx,slide,ms){
 function frame(ctx,data,slide,pct,idx,total,logo,ms){
  const w=ctx.canvas.width,h=ctx.canvas.height,s=w/720,sw=w/s,sh=h/s;
  ctx.setTransform(s,0,0,s,0,0);ctx.clearRect(0,0,sw,sh);
- const colors=Array.isArray(slide.color)?slide.color:['#2e143e','#7c3b91'];let gradient=ctx.createLinearGradient(0,0,sw,sh);gradient.addColorStop(0,colors[0]||'#38183e');gradient.addColorStop(.6,colors[1]||'#a1538e');gradient.addColorStop(1,'#151023');ctx.fillStyle=gradient;ctx.fillRect(0,0,sw,sh);
+ const theme=data.theme||'neon', accent=/^#[0-9a-fA-F]{6}$/.test(data.accent||'')?data.accent:'#fd347b';
+ const ink=theme==='paper'?'#181521':'#ffffff';const colors=Array.isArray(slide.color)?slide.color:['#2e143e','#7c3b91'];
+ if(theme==='paper'){
+  ctx.fillStyle='#f7f3ea';ctx.fillRect(0,0,sw,sh);
+  ctx.fillStyle=accent;ctx.fillRect(0,0,18,sh);ctx.fillRect(0,sh-112,sw,112);
+  ctx.strokeStyle='#d3cfc6';ctx.lineWidth=2;
+  for(let y=260;y<1140;y+=38){ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(680,y);ctx.stroke();}
+  ctx.save();ctx.translate(592,925);ctx.rotate(-.24);ctx.fillStyle='#1815210a';ctx.fillRect(-122,-370,245,540);ctx.restore();
+ }else if(theme==='noir'){
+  ctx.fillStyle='#0a0b10';ctx.fillRect(0,0,sw,sh);
+  const rg=ctx.createRadialGradient(540,420,10,540,420,770);rg.addColorStop(0,accent+'3a');rg.addColorStop(1,'#0a0b1000');ctx.fillStyle=rg;ctx.fillRect(0,0,sw,sh);
+  ctx.strokeStyle=accent;ctx.lineWidth=3;
+  for(let i=0;i<5;i++){ctx.globalAlpha=.11+i*.025;ctx.beginPath();ctx.arc(610,770,160+i*75,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=1;
+ }else{
+  let gradient=ctx.createLinearGradient(0,0,sw,sh);gradient.addColorStop(0,colors[0]||'#38183e');gradient.addColorStop(.55,accent);gradient.addColorStop(1,'#151023');ctx.fillStyle=gradient;ctx.fillRect(0,0,sw,sh);
+ }
+
  const vx=(ms/1000)*.20;
  ctx.save();ctx.translate(0,0);
- for(let i=0;i<3;i++){let x=500+Math.sin(vx+i*1.9)*75,y=200+i*340+Math.cos(vx*.67+i)*34,r=285+i*24;let glow=ctx.createRadialGradient(x,y,0,x,y,r);glow.addColorStop(0,i===1?'#faafcd1a':'#ffffff23');glow.addColorStop(1,'#ffffff00');ctx.fillStyle=glow;ctx.fillRect(0,0,sw,sh);}
+ if(theme==='neon')for(let i=0;i<3;i++){let x=500+Math.sin(vx+i*1.9)*75,y=200+i*340+Math.cos(vx*.67+i)*34,r=285+i*24;let glow=ctx.createRadialGradient(x,y,0,x,y,r);glow.addColorStop(0,i===1?'#faafcd1a':'#ffffff23');glow.addColorStop(1,'#ffffff00');ctx.fillStyle=glow;ctx.fillRect(0,0,sw,sh);}
  // A clean gradient is intentional. Category-specific marks are drawn by ornaments().
  ctx.restore();
- ornaments(ctx,slide,ms);
+ ornaments(ctx,slide,ms,ink);
  const margin=48;
- ctx.fillStyle='#ffffff3d';rounded(ctx,margin,55,624,5,3);ctx.fill();ctx.fillStyle='#fff';rounded(ctx,margin,55,624*(idx+pct)/total,5,3);ctx.fill();
- ctx.fillStyle='#ffffffdd';ctx.font='750 24px system-ui,sans-serif';ctx.textAlign='right';ctx.fillText(String(idx+1).padStart(2,'0')+' / '+String(total).padStart(2,'0'),670,108);ctx.textAlign='left';
- if(logo?.complete&&logo.naturalWidth){let width=238;ctx.drawImage(logo,margin,99,width,logo.naturalHeight/logo.naturalWidth*width);}else{ctx.fillStyle='#fff';ctx.font='900 44px system-ui,sans-serif';ctx.fillText('REEECAP',margin,145);}
- ctx.fillStyle='#ffffffe0';ctx.font='700 24px system-ui,sans-serif';ctx.fillText(esc(data.platform).toUpperCase()+'  •  '+esc(data.year),margin,213);
+ ctx.fillStyle=theme==='paper'?'#18152133':'#ffffff3d';rounded(ctx,margin,55,624,5,3);ctx.fill();ctx.fillStyle=theme==='paper'?'#181521':accent;rounded(ctx,margin,55,624*(idx+pct)/total,5,3);ctx.fill();
+ ctx.fillStyle=theme==='paper'?'#181521':'#ffffffdd';ctx.font='750 24px system-ui,sans-serif';ctx.textAlign='right';ctx.fillText(String(idx+1).padStart(2,'0')+' / '+String(total).padStart(2,'0'),670,108);ctx.textAlign='left';
+ if(logo?.complete&&logo.naturalWidth){let width=238;ctx.drawImage(logo,margin,99,width,logo.naturalHeight/logo.naturalWidth*width);}else{ctx.fillStyle=ink;ctx.font='900 44px system-ui,sans-serif';ctx.fillText('REEECAP',margin,145);}
+ ctx.fillStyle=theme==='paper'?'#382d3b':'#ffffffe0';ctx.font='700 24px system-ui,sans-serif';ctx.fillText(esc(data.platform).toUpperCase()+'  •  '+esc(data.year),margin,213);
  ctx.save();const ease=1-Math.pow(1-Math.min(1,pct*4),3);ctx.translate(0,(1-ease)*90);ctx.globalAlpha=Math.min(1,pct*5+.08);
- ctx.fillStyle='#ffffffca';ctx.font='750 24px system-ui,sans-serif';drawText(ctx,esc(slide.eyebrow).toUpperCase(),margin,388,620,33,2);
+ ctx.fillStyle=theme==='paper'?'#493c49':'#ffffffca';ctx.font='750 24px system-ui,sans-serif';drawText(ctx,esc(slide.eyebrow).toUpperCase(),margin,388,620,33,2);
  let val=esc(slide.value);const digits=val.length;let size=digits>12?83:digits>8?106:digits>5?134:172;
- if(val){ctx.font=`900 ${size}px system-ui,sans-serif`;ctx.fillStyle='#fff';drawText(ctx,val,margin,565,620,size+10,2);}
- const headlineY=val?780:630;ctx.font='850 67px system-ui,sans-serif';ctx.fillStyle='#fff';let lines=drawText(ctx,slide.title,margin,headlineY,616,76,3);
- ctx.font='500 29px system-ui,sans-serif';ctx.fillStyle='#f8eefe';drawText(ctx,slide.body,margin,headlineY+76*lines+37,606,43,4);
+ if(val){ctx.font=`900 ${size}px system-ui,sans-serif`;ctx.fillStyle=ink;drawText(ctx,val,margin,565,620,size+10,2);}
+ const headlineY=val?780:630;ctx.font='850 67px system-ui,sans-serif';ctx.fillStyle=ink;let lines=drawText(ctx,slide.title,margin,headlineY,616,76,3);
+ ctx.font='500 29px system-ui,sans-serif';ctx.fillStyle=theme==='paper'?'#413a43':'#f8eefe';drawText(ctx,slide.body,margin,headlineY+76*lines+37,606,43,4);
  ctx.restore();
- ctx.fillStyle='#ffffff33';ctx.fillRect(margin,1157,624,1);
- ctx.fillStyle='#ffffffe8';ctx.font='700 22px system-ui,sans-serif';ctx.fillText('REEECAP · RECAP EVERYTHING',margin,1198);
- ctx.fillStyle='#ffffffa9';ctx.font='500 18px system-ui,sans-serif';ctx.fillText(data.demo?({pt:'DEMO · DADOS FICTÍCIOS',en:'DEMO · FICTIONAL DATA',es:'DEMO · DATOS FICTICIOS'}[getLanguage()]):({pt:'Dados exportados pelo usuário · Processamento local',en:'User-exported data · Local processing',es:'Datos exportados por el usuario · Análisis local'}[getLanguage()]),margin,1235);
+ ctx.fillStyle=theme==='paper'?'#00000030':'#ffffff33';ctx.fillRect(margin,1157,624,1);
+ ctx.fillStyle=theme==='paper'?'#16131a':'#ffffffe8';ctx.font='700 22px system-ui,sans-serif';ctx.fillText('REEECAP · RECAP EVERYTHING',margin,1198);
+ ctx.fillStyle=theme==='paper'?'#423a42':'#ffffffa9';ctx.font='500 18px system-ui,sans-serif';ctx.fillText(data.demo?({pt:'DEMO · DADOS FICTÍCIOS',en:'DEMO · FICTIONAL DATA',es:'DEMO · DATOS FICTICIOS'}[getLanguage()]):({pt:'Dados exportados pelo usuário · Processamento local',en:'User-exported data · Local processing',es:'Datos exportados por el usuario · Análisis local'}[getLanguage()]),margin,1235);
+ if(idx<total-1&&pct>.86){ctx.fillStyle=theme==='paper'?'#f7f3ea':'#0a0910';ctx.globalAlpha=Math.min(1,(pct-.86)/.14);ctx.fillRect(0,0,sw,sh);ctx.globalAlpha=1;}
 }
+
 function ensureDialog(){if(dialog)return dialog;
  dialog=document.createElement('dialog');dialog.id='videoComposer';dialog.className='video-dialog';
- dialog.innerHTML='<div class="dialog-content"><button class="dialog-close" id="videoDialogClose" type="button" aria-label="Fechar">✕</button><div class="premium-mark">REEECAP <span>VIDEO STUDIO</span></div><h2 id="videoComposerTitle"></h2><p id="videoComposerDesc"></p><div class="video-layout"><div class="video-options"><div class="video-field"><label id="videoQualityLabel" for="videoQuality"></label><select id="videoQuality"><option value="720">HD · 720 × 1280 (mais leve)</option><option value="1080">Full HD · 1080 × 1920</option></select></div><div class="video-field"><label id="videoSpeedLabel" for="videoSpeed"></label><select id="videoSpeed"><option value="2400">Dinâmico · 2,4 s</option><option value="3400">Cinematográfico · 3,4 s</option></select></div><div class="video-field"><label class="video-check" for="videoAudio"><input id="videoAudio" type="checkbox" checked><span id="videoAudioLabel"></span></label></div><div class="video-field custom-track"><label class="video-check" for="videoCustomEnabled"><input id="videoCustomEnabled" type="checkbox"><span id="videoCustomLabel"></span></label><input id="videoCustomFile" type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" disabled><small id="videoCustomNote"></small></div><div class="video-field"><label id="videoVolumeLabel" for="videoVolume"></label><input id="videoVolume" type="range" min="0" max="100" value="35" step="5"></div></div><aside class="video-preview-panel"><span id="videoPreviewLabel"></span><canvas id="videoPreviewCanvas" width="360" height="640" aria-label="Prévia vertical"></canvas></aside></div><div class="video-slides-header"><strong id="videoChooseLabel"></strong><span id="videoSlideCount"></span></div><div class="video-selection-actions"><button id="videoAll" type="button"></button><button id="videoNone" type="button"></button></div><div class="video-story-select" id="videoStorySelect" role="group" aria-label="Escolha os Stories do vídeo"></div><button type="button" class="video-start" id="videoStart"></button><div class="video-progress" role="progressbar" aria-label="Progresso" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="videoProgressFill"></span></div><p class="video-msg" id="videoComposerMsg" aria-live="polite"></p><button type="button" class="video-share" id="videoShare"></button><div class="reeecap-music-library"><strong>Trilhas de verdade, com licença</strong><p>Escolha uma música, baixe o MP3 na página do compositor e use “música do meu aparelho” acima. Créditos CC BY 4.0 necessários.</p><div class="reeecap-music-links"><a href="https://www.scottbuckley.com.au/library/legacy/" target="_blank" rel="noopener noreferrer">Legacy · Future</a><a href="https://www.scottbuckley.com.au/library/catalyst/" target="_blank" rel="noopener noreferrer">Catalyst · Energy</a><a href="https://www.scottbuckley.com.au/library/uprising/" target="_blank" rel="noopener noreferrer">Uprising · Epic</a></div><small>Scott Buckley · Creative Commons Attribution 4.0</small></div><p class="video-subtle">Privacidade: o arquivo permanece no seu aparelho. Para músicas externas, inclua os créditos do artista na postagem.</p></div>';
+ dialog.innerHTML='<div class="dialog-content"><button class="dialog-close" id="videoDialogClose" type="button" aria-label="Fechar">✕</button><div class="premium-mark">REEECAP <span>VIDEO STUDIO</span></div><h2 id="videoComposerTitle"></h2><p id="videoComposerDesc"></p><div class="video-layout"><div class="video-options"><div class="video-field"><label for="videoTheme" id="videoThemeLabel">Estilo visual</label><select id="videoTheme"><option value="neon">Neon Motion · Luzes e formas</option><option value="noir">Noir Editorial · Preto e tipografia</option><option value="paper">Paper Cut · Colagem e papel</option></select></div><div class="video-field"><label for="videoAccent" id="videoAccentLabel">Cor de destaque</label><input id="videoAccent" type="color" value="#fd347b" aria-label="Cor de destaque"></div><div class="video-field"><label id="videoQualityLabel" for="videoQuality"></label><select id="videoQuality"><option value="720">HD · 720 × 1280 (mais leve)</option><option value="1080">Full HD · 1080 × 1920</option></select></div><div class="video-field"><label id="videoSpeedLabel" for="videoSpeed"></label><select id="videoSpeed"><option value="2400">Dinâmico · 2,4 s</option><option value="3400">Cinematográfico · 3,4 s</option><option value="4800">Contemplativo · 4,8 s</option></select></div><div class="video-field"><label class="video-check" for="videoAudio"><input id="videoAudio" type="checkbox" checked><span id="videoAudioLabel"></span></label></div><div class="video-field custom-track"><label class="video-check" for="videoCustomEnabled"><input id="videoCustomEnabled" type="checkbox"><span id="videoCustomLabel"></span></label><input id="videoCustomFile" type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" disabled><small id="videoCustomNote"></small></div><div class="video-field"><label id="videoVolumeLabel" for="videoVolume"></label><input id="videoVolume" type="range" min="0" max="100" value="35" step="5"></div></div><aside class="video-preview-panel"><span id="videoPreviewLabel"></span><canvas id="videoPreviewCanvas" width="360" height="640" aria-label="Prévia vertical"></canvas></aside></div><div class="video-slides-header"><strong id="videoChooseLabel"></strong><span id="videoSlideCount"></span></div><div class="video-selection-actions"><button id="videoAll" type="button"></button><button id="videoNone" type="button"></button></div><div class="video-story-select" id="videoStorySelect" role="group" aria-label="Escolha os Stories do vídeo"></div><button type="button" class="video-start" id="videoStart"></button><div class="video-progress" role="progressbar" aria-label="Progresso" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="videoProgressFill"></span></div><p class="video-msg" id="videoComposerMsg" aria-live="polite"></p><button type="button" class="video-share" id="videoShare"></button><div class="reeecap-music-library"><strong>Trilhas de verdade, com licença</strong><p>Escolha uma música, baixe o MP3 na página do compositor e use “música do meu aparelho” acima. Créditos CC BY 4.0 necessários.</p><div class="reeecap-music-links"><a href="https://www.scottbuckley.com.au/library/legacy/" target="_blank" rel="noopener noreferrer">Legacy · Future</a><a href="https://www.scottbuckley.com.au/library/catalyst/" target="_blank" rel="noopener noreferrer">Catalyst · Energy</a><a href="https://www.scottbuckley.com.au/library/uprising/" target="_blank" rel="noopener noreferrer">Uprising · Epic</a></div><small>Scott Buckley · Creative Commons Attribution 4.0</small></div><p class="video-subtle">Privacidade: o arquivo permanece no seu aparelho. Para músicas externas, inclua os créditos do artista na postagem.</p></div>';
  document.body.append(dialog);
  $('videoCustomEnabled').addEventListener('change',()=>{$('videoCustomFile').disabled=!$('videoCustomEnabled').checked;});
  $('videoAudio').addEventListener('change',()=>{const choice=mimeChoice($('videoAudio').checked);message(choice?.includes('webm')?tr().fallback:'');});
  $('videoStorySelect').addEventListener('change',updateSelection);
+ $('videoTheme').addEventListener('change',updateSelection);$('videoAccent').addEventListener('input',updateSelection);
  $('videoAll').addEventListener('click',()=>{dialog.querySelectorAll('.video-story-select input').forEach(x=>x.checked=true);updateSelection();});
  $('videoNone').addEventListener('click',()=>{dialog.querySelectorAll('.video-story-select input').forEach(x=>x.checked=false);updateSelection();});
  $('videoDialogClose').addEventListener('click',()=>{if(busy){abortCurrent?.();}else dialog.close();});
@@ -91,12 +110,13 @@ function chosenSlides(){const snapshot=window.REEECAP_VIDEO_SNAPSHOT?.();return 
 function updateSelection(){const chosen=chosenSlides(),t=tr();$('videoSlideCount').textContent=`${chosen.length} / ${$('videoStorySelect').querySelectorAll('input').length} ${t.chosen}`;
  $('videoStart').disabled=!chosen.length||busy;
  const d=window.REEECAP_VIDEO_SNAPSHOT?.();if(!d?.stories?.length)return;
- const c=$('videoPreviewCanvas'),ctx=c.getContext('2d');if(ctx){const first=chosen[0]||d.stories[0];frame(ctx,d,first,.55,0,chosen.length||1,previewLogo,750);}
+ const c=$('videoPreviewCanvas'),ctx=c.getContext('2d');if(ctx){const first=chosen[0]||d.stories[0];d.theme=$('videoTheme').value;d.accent=$('videoAccent').value;frame(ctx,d,first,.55,0,chosen.length||1,previewLogo,750);}
 }
 function show(){if(!window.REEECAP_VIDEO_SNAPSHOT?.()?.stories?.length){const el=$('videoStatus');if(el)el.textContent='Abra uma retrospectiva primeiro.';return;}ensureDialog();
  const t=tr();$('videoComposerTitle').textContent=t.title;$('videoComposerDesc').textContent=t.desc;$('videoQualityLabel').textContent=t.resolution;$('videoSpeedLabel').textContent=t.speed;$('videoAudioLabel').textContent=t.track;$('videoStart').textContent=t.go;$('videoShare').textContent=t.share;
  $('videoChooseLabel').textContent=t.select;$('videoAll').textContent=t.selectAll;$('videoNone').textContent=t.selectNone;
  $('videoCustomLabel').textContent=t.ownTrack;$('videoCustomNote').textContent=t.ownNote;$('videoVolumeLabel').textContent=t.volume;$('videoPreviewLabel').textContent=t.preview;
+ $('videoThemeLabel').textContent=({pt:'Estilo visual',en:'Visual style',es:'Estilo visual'})[getLanguage()];$('videoAccentLabel').textContent=({pt:'Cor de destaque',en:'Accent color',es:'Color de acento'})[getLanguage()];
  const snap=window.REEECAP_VIDEO_SNAPSHOT();
  $('videoStorySelect').innerHTML=snap.stories.map((s,i)=>`<label class="video-story-option"><input type="checkbox" data-index="${i}" checked><span class="video-slide-no">${String(i+1).padStart(2,'0')}</span><span class="video-slide-name">${String(s.title||s.eyebrow||'Story').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}</span></label>`).join('');
  if(!previewLogo){previewLogo=new Image();previewLogo.src='./assets/reeecap-logo-3.png';previewLogo.onload=updateSelection;}
@@ -105,7 +125,7 @@ function show(){if(!window.REEECAP_VIDEO_SNAPSHOT?.()?.stories?.length){const el
  message(mimeChoice($('videoAudio').checked)?.includes('webm')?t.fallback:'');dialog.showModal();
 }
 async function record(){const snapshot=window.REEECAP_VIDEO_SNAPSHOT?.();if(!snapshot?.stories?.length)return;
- snapshot.stories=chosenSlides();if(!snapshot.stories.length){message(tr().needOne);return;}
+ snapshot.stories=chosenSlides();snapshot.theme=$('videoTheme').value;snapshot.accent=$('videoAccent').value;if(!snapshot.stories.length){message(tr().needOne);return;}
  const type=mimeChoice($('videoAudio').checked);if(!type||!HTMLCanvasElement.prototype.captureStream){message(tr().unsupported);return;}
  busy=true;const button=$('videoStart');button.textContent=tr().cancel;const original=$('downloadVideo');if(original)original.disabled=true;
  const width=Number($('videoQuality').value)||720,quality=width===1080?1080:720,msPerSlide=Number($('videoSpeed').value)||2400,n=snapshot.stories.length,duration=msPerSlide*n;

@@ -1,0 +1,13 @@
+/* REEECAP 3 · six platform cards and accessible editor inputs */
+@media(min-width:1121px){.platform-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(min-width:700px) and (max-width:1120px){.platform-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+.platform-spotify{background:linear-gradient(145deg,#063e29,#087953 55%,#11a46e)!important}
+.platform-facebook{background:linear-gradient(145deg,#0b264b,#1650b3 56%,#2385fa)!important}
+.platform-spotify .platform-art-center,.platform-facebook .platform-art-center{background:none!important}
+.platform-spotify .platform-art-center img,.platform-facebook .platform-art-center img{filter:none!important}
+.platform-grid .platform-card{min-width:0}
+@media(max-width:699px){.platform-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.platform-card{min-height:290px!important}}
+@media(max-width:360px){.platform-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.platform-bottom strong{font-size:24px!important}}
+
+.video-dialog #videoAccent{width:100%;height:44px;padding:4px;border-radius:10px;background:#201828;border:1px solid #ffffff43;cursor:pointer}
+.video-dialog #videoTheme{font-size:15px;min-height:48px}

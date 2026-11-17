@@ -78,6 +78,16 @@
       source: 'https://support.reddithelp.com/hc/en-us/articles/360043048352-How-do-I-request-a-copy-of-my-Reddit-data-and-information'
     }
   };
+  visualGuides.spotify={
+   detail:'Spotify → Conta → Privacidade → Baixar seus dados. Peça o histórico de streaming ampliado para cobrir mais anos.',
+   screens:[['Spotify','Conta · Privacidade','Acesse a seção de privacidade da sua conta Spotify'],['Seus dados','Histórico de streaming ampliado','Selecione Extended Streaming History, se disponível'],['Arquivo JSON','ZIP ou Streaming_History','Importe os arquivos JSON de reprodução, sem dados bancários']],
+   source:'https://support.spotify.com/article/understanding-your-data/'
+  };
+  visualGuides.facebook={
+   detail:'Facebook → Central de Contas → Suas informações e permissões → Exportar suas informações.',
+   screens:[['Facebook','Configurações','Abra a Central de Contas'],['Informações','Exportar suas informações','Selecione posts, comentários e reações'],['Exportar para dispositivo','JSON · período desejado','Baixe o ZIP oficial quando estiver pronto']],
+   source:'https://about.fb.com/news/2023/10/manage-your-information-across-apps/'
+  };
   // Accurate navigation text in each language; diagrams remain clearly labelled.
   const localizedGuides = {
     en: {
@@ -117,7 +127,29 @@
         ['Bandeja de entrada','Descarga el ZIP','Reddit enviará un enlace cuando esté preparado']]}
     }
   };
+  Object.assign(localizedGuides.en,{
+    spotify:{detail:'Spotify → Account → Privacy → Download your data.',screens:[['Spotify','Account · Privacy','Open account privacy settings'],['Your data','Extended Streaming History','Choose the expanded history for more years'],['JSON files','ZIP or Streaming_History','Import the files without payment data']]},
+    facebook:{detail:'Facebook → Accounts Center → Your information and permissions → Export.',screens:[['Facebook','Settings','Go to Accounts Center'],['Your information','Export your information','Include posts, comments and reactions'],['Export to device','JSON and date range','Import the ZIP after Meta prepares it']]}
+  });
+  Object.assign(localizedGuides.es,{
+    spotify:{detail:'Spotify → Cuenta → Privacidad → Descargar tus datos.',screens:[['Spotify','Cuenta · Privacidad','Entra en privacidad de la cuenta'],['Tus datos','Historial ampliado','Elige el historial ampliado para más años'],['Archivos JSON','ZIP o Streaming_History','Importa el historial sin datos bancarios']]},
+    facebook:{detail:'Facebook → Centro de cuentas → Tu información y permisos → Exportar.',screens:[['Facebook','Configuración','Entra en el Centro de cuentas'],['Tu información','Exportar tu información','Incluye publicaciones, comentarios y reacciones'],['Exportar al dispositivo','JSON y fechas','Importa el ZIP preparado por Meta']]}
+  });
   const externalExamples={"instagram": [{"url": "https://images.wondershare.com/drfone/article/2026/05/how-to-find-deleted-instagram-post-10.jpg", "source": "https://drfone.wondershare.com/app-recovery/how-to-find-deleted-instagram-post.html", "label": "Central de Contas e exportação (Wondershare, 2026)", "step": 1}, {"url": "https://www.multcloud.com/screenshot/en/others-1/instagram/choose-all-available-information.png", "source": "https://www.multcloud.com/explore/what-is-included-in-instagram-data-download-0121-ac.html", "label": "Seleção das informações (MultCloud)", "step": 2}], "tiktok": [{"url": "https://storage.ghost.io/c/fb/a8/fba8736e-797b-43bb-bcba-040fb8dcfebb/content/images/size/w600/2025/01/TikTok-Account-Settings.png", "source": "https://www.kapwing.com/resources/how-to-download-all-tiktok-videos-and-data-in-one-individually/", "label": "Configurações de exportação (Kapwing)", "step": 0}, {"url": "https://storage.ghost.io/c/fb/a8/fba8736e-797b-43bb-bcba-040fb8dcfebb/content/images/size/w1600/2025/01/TikTok-Data-Request-Configuration.png", "source": "https://www.kapwing.com/resources/how-to-download-all-tiktok-videos-and-data-in-one-individually/", "label": "Categorias e JSON (Kapwing)", "step": 2}], "youtube": [{"url": "https://resource.gbyte.com/20250821/large/google-takeout-exporte-video-youtube.webp", "source": "https://www.gbyte.com/fr/blog/recuperer-videos-youtube", "label": "YouTube no Google Takeout (Gbyte)", "step": 1}], "reddit": [{"url": "https://www.expressvpn.com/wp-ws-cache/uploads-expressvpn/2025/10/2-8.png", "source": "https://www.expressvpn.com/blog/delete-reddit-account/", "label": "Formulário real do Reddit (ExpressVPN)", "step": 1}]};
+  // A screenshot is loaded only after explicit click. These are publisher images, not recreations.
+  externalExamples.spotify=[{
+   url:'https://support.trackify.am/images/import_one.png',
+   source:'https://support.trackify.am/import/guide',
+   label:'Spotify · seleção do histórico ampliado (Trackify)',step:1
+  }];
+  externalExamples.facebook=[{
+   url:'https://images.wondershare.com/drfone/article/2026/05/how-to-find-deleted-instagram-post-10.jpg',
+   source:'https://drfone.wondershare.com/app-recovery/how-to-find-deleted-instagram-post.html',
+   label:'Central de Contas da Meta · compartilhada por Instagram/Facebook',step:0
+  }];
+  // This former Reddit illustration described account deletion, not data export.
+  // Remove it rather than mislead visitors with an unrelated screenshot.
+  externalExamples.reddit=[];
   const guideUi={
     pt:{open:'Abrir configurações',disclaimer:'Capturas externas reais quando disponíveis; os demais cartões são esquemas. Imagens e menus podem mudar.',source:'Consultar a ajuda oficial de '},
     en:{open:'Open settings',disclaimer:'Real third-party screenshots where available; other cards are diagrams. Menus and images may change.',source:'See official help for '},

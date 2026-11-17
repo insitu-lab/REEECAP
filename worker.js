@@ -102,8 +102,8 @@ function findIGRecords(root,category){
  }
  return arr;
 }
-const kinds=['watched','likes','saved','shares','comments','posts','reels','storyPosts','following','followers','searches','stories','downvotes'];
-let events=[], seen=new Set(), skipped=0, parseErrors=0, scanned=0, dedup=new Set(), account=new Map();
+const kinds=['watched','likes','saved','shares','comments','posts','reels','storyPosts','following','followers','searches','stories','downvotes','listens','podcasts'];
+let events=[], seen=new Set(), skipped=0, parseErrors=0, scanned=0, dedup=new Set(), account=new Map(), sources=[];
 function add(type, date, label='', duration=0, meta='', uniqueId=''){
  if(!kinds.includes(type))return;
  const valid=date?dateValue(date):null;
@@ -230,10 +230,64 @@ function parseReddit(name,text){
  });
 }
 
+// Spotify: accepts official basic StreamingHistory*.json and Extended Streaming History JSON.
+// ms_played is playback duration, not a full-track count or time spent in the app.
+function parseSpotify(name,root){
+ if(!Array.isArray(root))return;
+ const validFile=/^(streaming_history|streaminghistory|endsong|end_song)/.test(norm(name.split('/').pop()));
+ if(!validFile)return;
+ for(const item of root){
+  if(!item||typeof item!=='object')continue;
+  const time=timeFromRecord(item);
+  const isPodcast=!!(item.episode_name||item.episodeName||item.spotify_episode_uri);
+  const track=isPodcast?(item.episode_name||item.episodeName):(item.master_metadata_track_name||item.trackName||item.track_name);
+  const artist=isPodcast?(item.episode_show_name||item.episodeShowName||''):(item.master_metadata_album_artist_name||item.artistName||'');
+  const rawMs=item.ms_played??item.msPlayed;
+  if(!time||typeof track!=='string'||!track.trim())continue;
+  const duration=Number(rawMs);
+  if(rawMs!==undefined&&(!Number.isFinite(duration)||duration<0||duration>24*60*60*1000))continue;
+  add(isPodcast?'podcasts':'listens',time,track,rawMs===undefined?0:duration,String(artist||''),String(item.spotify_track_uri||item.spotify_episode_uri||''));
+  if(rawMs!==undefined)seen.add('minutes');
+ }
+}
+// Facebook export manifests change over time. Recognize only identifiable activity
+// files and dated records; never estimate reach, impressions or reactions from posts.
+function facebookCategory(path){
+ const base=norm(String(path).split('/').pop());
+ if(/^(your_posts|posts)(_[0-9]+)?_json$/.test(base))return 'posts';
+ if(/^(your_comments|comments)(_[0-9]+)?_json$/.test(base))return 'comments';
+ if(/^(your_likes_and_reactions|likes_and_reactions|reactions)(_[0-9]+)?_json$/.test(base))return 'likes';
+ if(/^(saved_items|your_saved_items|saved_posts)(_[0-9]+)?_json$/.test(base))return 'saved';
+ return null;
+}
+function parseFacebook(name,root){
+ const kind=facebookCategory(name);if(!kind)return;
+ const arrays=[];
+ if(Array.isArray(root))arrays.push(root);
+ else if(root&&typeof root==='object'){
+  for(const [key,value] of Object.entries(root)){
+   if(banned.test(key))continue;
+   if(Array.isArray(value)&&/post|comment|react|like|sav/i.test(key))arrays.push(value);
+  }
+ }
+ if(!arrays.length)return;
+ seen.add(kind);
+ for(const arr of arrays)for(const r of arr){
+  if(!r||typeof r!=='object')continue;
+  const timestamp=timeFromRecord(r);
+  if(!timestamp)continue;
+  const data=Array.isArray(r.data)?r.data:[];
+  const first=data.find(x=>x&&typeof x==='object')||{};
+  const text=first.post||first.comment||first.text||r.title||r.description||r.comment||r.text||'';
+  add(kind,timestamp,typeof text==='string'?text:'',0,'',String(r.id||r.fbid||r.uri||''));
+ }
+}
 function supportedFile(platform,name){
  const x=name.toLowerCase();
  if(banned.test(x))return false;
  if(platform==='reddit')return redditCategory(x)!==null;
+ if(platform==='spotify')return x.endsWith('.json')&&/^(streaming_history|streaminghistory|endsong|end_song)/.test(norm(x.split('/').pop()));
+ if(platform==='facebook')return x.endsWith('.json')&&facebookCategory(x)!==null;
  if(!x.endsWith('.json'))return false;
  if(platform==='instagram')return /likes|liked|saved|comments|story_interactions|stories_liked|following|followers|posts|reels|stories|video|search|share|repost/.test(x);
  if(platform==='tiktok')return true;
@@ -246,22 +300,44 @@ function consume(platform,name,content){
  if(platform==='instagram')parseInstagram(name,obj);
  if(platform==='tiktok')parseTikTok(name,obj);
  if(platform==='youtube')parseYouTube(name,obj);
+ if(platform==='spotify')parseSpotify(name,obj);
+ if(platform==='facebook')parseFacebook(name,obj);
  scanned++;
+}
+// Only infer when the archive contains unmistakable platform-specific filenames.
+// Ambiguous posts.json/likes.json are never guessed as Meta or Reddit data.
+function detectPlatform(names){
+ const scores=new Set();
+ for(const raw of names){
+  const path=String(raw).toLowerCase(),base=path.split('/').pop();
+  if(/your_instagram_activity|instagram_activity|ig_posts|likes_media_likes/.test(path))scores.add('instagram');
+  if(/(^|\/)user_data\.json$/.test(path)||/video_browsing_history/.test(path))scores.add('tiktok');
+  if(/youtube|takeout\/.*watch.history|watch.history\.json/.test(path))scores.add('youtube');
+  if(/^(comments|posts|upvoted_posts|saved_posts|post_votes)\.csv$/.test(base))scores.add('reddit');
+  if(/^(streaminghistory|streaming_history_|endsong|end_song)/.test(base))scores.add('spotify');
+  if(/^(your_posts|your_comments|your_likes_and_reactions|saved_items)(_[0-9]+)?\.json$/.test(base)||/your_facebook_activity/.test(path))scores.add('facebook');
+ }
+ return scores.size===1?[...scores][0]:null;
 }
 self.onmessage=async e=>{
  if(e.data?.action!=='analyze')return;
- ({events,seen,skipped,parseErrors,scanned,dedup,account}={events:[],seen:new Set(),skipped:0,parseErrors:0,scanned:0,dedup:new Set(),account:new Map()});
- const {files,platform}=e.data;
+ ({events,seen,skipped,parseErrors,scanned,dedup,account,sources}={events:[],seen:new Set(),skipped:0,parseErrors:0,scanned:0,dedup:new Set(),account:new Map(),sources:[]});
+ const {files}=e.data;const requested=e.data.platform;let platform=requested;
  try{
-  const jobs=[];
+  const discovered=[];
   for(const file of files){
    if(/\.zip$/i.test(file.name)){
     const entries=await zipEntries(file);
-    const eligible=entries.filter(x=>supportedFile(platform,x.name));
-    for(const entry of eligible)jobs.push({file,entry,name:entry.name});
-    skipped+=entries.length-eligible.length;
-   } else if(supportedFile(platform,file.name))jobs.push({file,name:file.name});else skipped++;
+    for(const entry of entries)discovered.push({file,entry,name:entry.name});
+   }else discovered.push({file,name:file.name});
   }
+  let jobs=discovered.filter(x=>supportedFile(platform,x.name));
+  if(!jobs.length){
+   const detected=detectPlatform(discovered.map(j=>j.name));
+   if(detected&&detected!==requested){platform=detected;jobs=discovered.filter(x=>supportedFile(platform,x.name));}
+  }
+  skipped=discovered.length-jobs.length;
+  if(jobs.length>3000||jobs.reduce((sum,j)=>sum+(j.entry?.uncompressed||j.file.size),0)>420*1024*1024)throw Error('A exportação contém dados demais. Selecione somente atividades ou divida o ZIP.');
   // Prefer Instagram's posts_1.json over the parallel posts.json manifest.
   // The latter may duplicate entries and contain inaccurate historical timestamps.
   const selected=jobs.filter(job=>{
@@ -269,14 +345,17 @@ self.onmessage=async e=>{
    const base=job.name.replace(/posts\.json$/i,'');
    return !jobs.some(other=>other.file===job.file&&other.name!==job.name&&other.name.startsWith(base+'posts_')&&/posts_\d+\.json$/i.test(other.name));
   });
-  const filtered=selected;
+  // A Spotify export can include both basic and extended histories. They overlap:
+  // prefer the richer extended manifests, avoiding double counting plays.
+  const hasExtended=platform==='spotify'&&selected.some(j=>/^(streaming_history_|end_song|endsong)/.test(norm(j.name.split('/').pop())));
+  const filtered=hasExtended?selected.filter(j=>!/^(streaminghistory)[0-9_]*_json$/.test(norm(j.name.split('/').pop()))):selected;
   for(let i=0;i<filtered.length;i++){
    const job=filtered[i];self.postMessage({kind:'progress',current:i,total:filtered.length,name:job.name});
-   try{const content=job.entry?await zipText(job.file,job.entry):await job.file.text();consume(platform,job.name,content);}
+   try{const content=job.entry?await zipText(job.file,job.entry):await job.file.text();const oldScanned=scanned;consume(platform,job.name,content);if(scanned>oldScanned)sources.push(job.name.split('/').pop().slice(0,96));}
    catch(err){parseErrors++;self.postMessage({kind:'warning',message:'Não foi possível ler '+job.name.split('/').pop()+': '+err.message});}
   }
-  if(!filtered.length)throw Error('Não encontrei arquivos JSON de atividades para essa plataforma. Confira a rede selecionada e o formato da exportação.');
+  if(!filtered.length)throw Error('Nenhum arquivo compatível com '+platform+' foi encontrado. Exporte em JSON (ou CSV para Reddit), selecione a rede correta e confira as instruções.');
   if(!events.length)throw Error('Não encontrei registros compatíveis. Confira se escolheu a rede correta e exportou as categorias de atividade.');
-  self.postMessage({kind:'result',data:{events,seen:[...seen],scanned,skipped,parseErrors,platform,undatedCounts:events.filter(x=>!x.time).reduce((acc,e)=>{acc[e.type]=(acc[e.type]||0)+1;return acc;},{})}});
+  self.postMessage({kind:'result',data:{events,seen:[...seen],scanned,skipped,parseErrors,platform,autoDetected:platform!==requested,sources:[...new Set(sources)].slice(0,40),undatedCounts:events.filter(x=>!x.time).reduce((acc,e)=>{acc[e.type]=(acc[e.type]||0)+1;return acc;},{})}});
  }catch(err){self.postMessage({kind:'error',message:err.message});}
 };
