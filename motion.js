@@ -41,16 +41,19 @@ async function loadStock(){
  if(media.kind==='local'&&readyCount())return readyCount();
  if(media.loading)return media.loading;
  media.kind='stock';media.lastError='';clearClips();
- const videos=STOCK.map(x=>createVideo(x.src,true));media.clips=videos;
+ const videos=STOCK.map((x,i)=>createVideo('./assets/media/clips/clip-'+(i+1)+'.mp4',false));media.clips=videos;
  media.loading=(async()=>{
   // Start only the first two clips. Avoid large downloads on mobile connections.
   const checks=await Promise.all(videos.map((v,i)=>i<2?awaitClip(v):Promise.resolve(false)));
   if(media.kind!=='stock')return readyCount();
   if(!checks.some(Boolean)){
-   // Try two additional sources if the first two were removed or inaccessible.
-   await Promise.all(videos.slice(2).map(v=>awaitClip(v)));
+   // Local files absent in developer checkout: use direct licensed sources automatically.
+   // Production release downloads clips into /assets/media/clips/ during CI.
+   clearClips();media.clips=STOCK.map(x=>createVideo(x.src,true));
+   await Promise.all(media.clips.slice(0,2).map(v=>awaitClip(v)));
+   if(!readyCount())await Promise.all(media.clips.slice(2).map(v=>awaitClip(v)));
   }
-  for(const v of videos){if(playable(v))v.play().catch(()=>{});}
+  for(const v of media.clips){if(playable(v))v.play().catch(()=>{});}
   const count=readyCount();
   if(!count)media.lastError='Clipes externos indisponíveis. É necessário acesso à internet e autorização de vídeo/CORS do servidor.';
   notify();return count;
@@ -78,7 +81,7 @@ function safeLine(c,t,x,y,max){const s=String(t||'').replace(/\s+/g,' ').slice(0
 function film(c,t){
  if(!readyCount()){
   c.save();c.fillStyle='rgba(255,255,255,.75)';c.font='600 20px system-ui';
-  c.fillText('Carregando vídeos reais…',340,430);c.restore();return;
+  c.fillText('Aguardando clipes…',340,430);c.restore();return;
  }
  const strips=[{x:-150,y:310,angle:.12},{x:-190,y:1035,angle:-.10}];
  strips.forEach((strip,row)=>{c.save();c.translate(strip.x,strip.y);c.rotate(strip.angle);const offset=-((t*22+row*160)%165);

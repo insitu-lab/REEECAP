@@ -28,3 +28,7 @@ Documentação oficial:
 
 ## REEECAP 2.3: carregamento sob demanda
 As imagens de terceiros são carregadas apenas quando o visitante toca em **Ver captura real**. Isso faz uma solicitação ao domínio da fonte. Em caso de erro de rede, ainda há o link para a página de origem. Nenhum dado ZIP é enviado nessas requisições.
+
+
+## REEECAP 5
+O tutorial ocupa um `dialog` grande e tenta imagens locais `assets/media/tutorials/<plataforma>-<etapa>.png`, depois uma URL referenciada de terceiro e, quando não existe captura, apresenta um diagrama rotulado. A solicitação externa de imagem compartilha dados técnicos normais da visita (IP) com o host da captura; nenhuma informação de exportação do usuário é enviada. Ainda não existem três capturas reais em todas as plataformas.

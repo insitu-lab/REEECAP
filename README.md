@@ -62,7 +62,7 @@ As imagens são capturas do renderizador de vídeo, com **dados sintéticos** us
 
 > **Versão de testes:** ainda há limitações que impedem anunciar o produto como concluído.
 
-**[Baixar REEECAP 4.0 — vídeos reais no rolo (.zip)](downloads/REEECAP-4.0-publico.zip)**
+**[Baixar REEECAP 5.0 — código público (.zip)](downloads/REEECAP-5.0-publico.zip)**
 
 O download acima está incluído no repositório e funciona mesmo antes de publicar uma GitHub Release. A instalação é um site estático; não é um aplicativo instalável para Windows. Em futuras versões, os pacotes podem ser publicados na seção **Releases** do GitHub para oferecer histórico e notas de versão.
 
@@ -73,7 +73,7 @@ O download acima está incluído no repositório e funciona mesmo antes de publi
 3. Abra `http://localhost:8000` no navegador.
 4. Escolha uma rede social, abra a demonstração ou importe um arquivo ZIP/JSON/CSV exportado por você.
 
-Para publicar via GitHub Pages, envie os arquivos do diretório do site com `index.html` na raiz e ative **Settings → Pages → Deploy from a branch**.
+Para publicar com vídeos e músicas **dentro do aplicativo**, envie este repositório, ative **Settings → Pages → Source: GitHub Actions**, e execute o workflow **REEECAP with local media**. Ele baixa e otimiza os arquivos durante o build, valida 4 vídeos e 3 músicas locais e só publica se essa validação passar. Não exige uploads do visitante. Em ambiente de desenvolvimento sem os arquivos, o app tenta carregar fontes oficiais externas.
 
 ## Plataformas
 
@@ -90,17 +90,21 @@ O REEECAP não inventa estatísticas quando a plataforma omite dados; formatos v
 
 O Spotify publica as diferenças entre o histórico normal e o ampliado no [guia oficial](https://support.spotify.com/article/understanding-your-data/); o Facebook/Instagram usam a [Central de Contas da Meta](https://about.fb.com/news/2023/10/manage-your-information-across-apps/).
 
-## Música de qualidade, com os créditos certos
+## Música e imagens em movimento
 
-A interface oferece links oficiais para **Legacy**, **Catalyst** e **Uprising**, trilhas do compositor **Scott Buckley**, licenciadas sob **Creative Commons Attribution 4.0**. O download da obra é feito no site do compositor, depois você seleciona o MP3 local para compor o vídeo. Não há redistribuição dos MP3 de terceiros neste repositório. A atribuição ao autor é necessária na publicação. [Detalhes e créditos](MUSICAS_E_LICENCAS.md).
+O player agora oferece músicas reais identificadas, **Cat Walk**, **Rising Forest** e **Techno Fest Vibes**, com escolha e audição no próprio editor, sem pedir um MP3 ao visitante. O rolo usa clipes filmados de verdade do Mixkit, não vídeos inventados nem Reels de contas reais. O build baixa e hospeda essas mídias no **mesmo domínio** do site.
+
+**Atenção:** o ZIP do repositório contém o **código e instalador dos assets**, e não os MP4s/MP3s de terceiros. O material só fica de fato embutido no **site publicado pelo workflow** depois da validação dos downloads. Veja [licenças de mídia](LICENCAS_MIDIA_5.md) e [status verificável](STATUS_5.md).
+
+O tutorial abre como janela modal grande, com três etapas obrigatórias por rede e fundo desfocado. As capturas autênticas são carregadas automaticamente quando presentes; diagramas são rotulados como diagramas e usados somente como reserva. Ainda falta reunir capturas reais para *todas* as telas das seis redes.
 
 ## Estado do projeto
 
 | Recurso | Estado |
 |:--|:--|
 | Stories e estatísticas, PT/EN/ES | Implementados para seis plataformas com testes sintéticos, sem validar todas as variantes de exportações reais |
-| Renderização de vídeo com trilha | Implementada; depende de codec no navegador |
-| Prints de exportação | Capturas reais de terceiros nas etapas verificadas, com crédito e carregamento apenas após toque; etapas restantes são diagramas explicitamente indicados |
+| Renderização de vídeo com trilha | MP4 H.264 sem música testado; com música depende da codificação do navegador (WebM pode ser necessário) |
+| Prints de exportação | Tutorial obrigatório em modal de três etapas; usa capturas self-hosted quando presentes, com fallback remoto ou diagrama identificado |
 | Arquivos exportados por contas reais | Ainda não cobertos pela bateria de testes |
 | Personalização visual do vídeo gratuito | Três temas com composição distinta e cor de destaque, duração e seleção de Stories |
 | Studio Premium | Editor privado separado; autenticação/cobrança não ativadas |
@@ -115,7 +119,7 @@ app.js / worker.js     # fluxo e leitura local de arquivos
 video.js               # renderização e gravação 9:16
 atelier.js             # guias de exportação por plataforma
 locale-full.js         # textos PT/EN/ES
-assets/                # marca, ícones e trilha original
+assets/                # identidade e clipes/músicas instalados no build
 docs/media/            # capturas reais do REEECAP para o README
 tests/                 # testes automatizados
 downloads/             # pacote ZIP público versionado
@@ -132,4 +136,4 @@ O código do REEECAP é disponibilizado sob [MIT](LICENSE). O conteúdo de terce
 
 ### Vídeos reais nos Stories
 
-O rolo de filme carrega automaticamente vídeos gravados de verdade do Mixkit, licenciados para uso comercial. Não são gravações nem Reels do perfil analisado. O editor permite substituí-los por vídeos locais. O carregamento das demonstrações depende da conexão, da disponibilidade dos vídeos externos e da permissão CORS do host; se não houver permissão para composição em canvas, o sistema não simula Reels na exportação. Documentação: [CLIPES_REAIS_E_LICENCAS.md](CLIPES_REAIS_E_LICENCAS.md).
+O rolo de filme usa clipes gravados de verdade, que o workflow inclui no site publicado. Não são vídeos do perfil analisado. O ambiente sem mídia local utiliza fallback online. [Origem e licença dos clipes](LICENCAS_MIDIA_5.md).

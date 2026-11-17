@@ -1,0 +1,44 @@
+/* REEECAP editorial polish and mandatory tutorial, mobile-first. */
+body.tutorial-open{overflow:hidden!important}
+.reeecap-tutorial{position:fixed;inset:0;margin:auto;border:0;padding:0;background:transparent;color:#f9f7f8;width:min(1040px,calc(100vw - 40px));max-height:min(94dvh,940px);max-width:none;overflow:visible}
+.reeecap-tutorial::backdrop{background:rgba(5,4,13,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.tutorial-frame{display:flex;flex-direction:column;background:#14121d;border:1px solid #4b4059;border-radius:20px;overflow:hidden;max-height:min(94dvh,940px);box-shadow:0 32px 100px #03010a99}
+.tutorial-top{display:flex;align-items:center;justify-content:space-between;padding:22px 32px 14px;border-bottom:1px solid #322e3c}
+.tutorial-brand{font-size:20px;font-weight:920;letter-spacing:-.045em}.tutorial-brand span{color:#e5a2d5;font-size:12px;letter-spacing:.13em}
+.tutorial-position{font-weight:800;color:#cdbacf;font-size:16px;letter-spacing:.08em}
+.tutorial-head{padding:22px 32px 12px}.tutorial-head p{margin:0}.tutorial-head #tutorialEyebrow{color:#c99de4;font-weight:800;text-transform:uppercase;letter-spacing:.13em;font-size:13px}
+.tutorial-head h2{font-size:clamp(29px,4vw,45px);letter-spacing:-.05em;line-height:1.1;margin:8px 0 7px;color:#fff}
+.tutorial-head #tutorialDescription{font-size:clamp(16px,1.5vw,19px);line-height:1.45;color:#d3c8db}
+.tutorial-visual{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#211927;margin:10px 32px 0;border-radius:12px;padding:15px 22px}
+.tutorial-image{max-width:100%;max-height:min(52vh,480px);object-fit:contain;display:block;box-shadow:0 8px 28px #09051055}
+.tutorial-photo-label{position:absolute;top:12px;left:14px;padding:5px 10px;font-size:12px;color:#e9daec;background:#15111bc9;border-radius:4px}
+.tutorial-under{width:100%;display:flex;justify-content:space-between;align-items:center;gap:14px;padding-top:10px;color:#c6b9ce}
+.tutorial-under p{font-size:12px;margin:0;line-height:1.4}.tutorial-under a{white-space:nowrap;font-size:13px;color:#e9afe1}
+.tutorial-bottom{padding:16px 32px 24px}.tutorial-progress{display:flex;gap:6px;margin-bottom:15px}.tutorial-progress span{height:4px;flex:1;background:#4e3c5c;border-radius:4px}.tutorial-progress .is-active{background:#e36bab}
+.tutorial-actions{display:flex;justify-content:space-between;gap:14px}.tutorial-actions button{font:800 16px/1.2 system-ui,sans-serif;border-radius:9px;padding:15px 24px;min-height:52px;cursor:pointer}
+.tutorial-secondary{background:transparent;color:#fff;border:1px solid #74697a}.tutorial-primary{background:#ec75b3;color:#160b20;border:0;min-width:45%}
+.tutorial-replay{border:0;background:transparent;color:#efb3f5;text-decoration:underline;font:700 15px system-ui;cursor:pointer;padding:10px 0;text-underline-offset:4px}
+.tutorial-diagram{width:min(390px,92%);padding:10px 0;display:flex;justify-content:center}
+.diagram-app{width:100%;height:min(40vh,360px);background:#faf9fc;color:#171324;border-radius:24px;border:7px solid #403346;padding:17px 16px;display:flex;flex-direction:column;box-shadow:0 12px 45px #08040b88}
+.diagram-header{display:flex;justify-content:space-between;gap:15px;font-size:20px}.diagram-header strong{font-size:18px}.diagram-body{display:flex;flex-direction:column;gap:15px;flex:1;padding:19px 2px}.diagram-line{height:10px;background:#e8e5ec;border-radius:6px}.diagram-line.short{width:65%}.diagram-highlight{border:2px solid #b832a0;background:#f1e0f5;padding:16px 12px;display:flex;justify-content:space-between;align-items:center;border-radius:12px;font-size:17px}.diagram-highlight strong{font-weight:800}.diagram-foot{display:flex;justify-content:space-around}.diagram-foot span{width:22px;height:4px;background:#bbb3bf;border-radius:4px}
+/* Remove unnecessary text noise and glowing boxes in import wizard. */
+.studio-layout .step-card,.guide-screen,.export-panel,.step-main-pane{box-shadow:none!important}
+.step-card .step-num{color:#cdb8d7!important}.step-card h3{color:inherit!important}.step-card p{font-size:clamp(15px,1.3vw,18px)!important;color:#d6ccdb!important}
+.step-card.active{border-color:#9a569f!important;background:#32283c!important}.step-card.active h3{color:#f6d6ee!important}
+body[data-appearance=light] .step-card.active{background:#f0e4f1!important}.step-card.active,.step-card:hover{box-shadow:none!important}
+.video-dialog .reeecap-music-library{margin-top:17px;padding:20px;border:1px solid #4c4057;background:#211927;border-radius:12px}
+.reeecap-music-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.reeecap-music-options label{border:1px solid #574863;border-radius:9px;padding:12px;display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;min-width:0}
+.reeecap-music-options label:has(input:checked){border-color:#df83bb;background:#3a263d}
+#reeecapPreviewSoundtrack{background:#fff;color:#221425;border:0;padding:11px 15px;border-radius:7px;font-weight:750;cursor:pointer}
+@media(max-width:650px){
+.reeecap-tutorial{width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}.tutorial-frame{border-radius:14px;max-height:calc(100dvh - 24px)}
+.tutorial-top{padding:13px 16px 10px}.tutorial-head{padding:17px 18px 8px}.tutorial-head h2{font-size:clamp(27px,7vw,36px)}
+.tutorial-visual{margin:5px 14px 0;padding:10px;min-height:230px}.tutorial-image{max-height:min(49dvh,430px)}
+.tutorial-under{align-items:flex-start;flex-direction:column;gap:2px}.tutorial-under a{white-space:normal}
+.tutorial-bottom{padding:12px 16px 17px}.tutorial-actions button{font-size:15px;padding:12px 15px;min-height:49px}
+.diagram-app{height:min(37dvh,320px)}.reeecap-music-options{grid-template-columns:1fr}
+}
+
+/* Old step thumbnails are replaced by the large modal; no duplicate minuscule carousel. */
+#platformWalkthrough{display:none!important}

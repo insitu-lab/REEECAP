@@ -7,12 +7,24 @@
 
 const decoder = new TextDecoder('utf-8');
 const utf8Strict = new TextDecoder('utf-8',{fatal:true});
+const cp1252Reverse = {8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
 function repairText(value){
- if(typeof value!=='string'||!/[ÃÂâ]/.test(value))return value;
- // Meta exports sometimes contain UTF-8 bytes misread as Latin-1 ("já" -> "jÃ¡").
- return value.replace(/(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2})+/g,chunk=>{
-  try {const bytes=Uint8Array.from(chunk,ch=>ch.charCodeAt(0));return utf8Strict.decode(bytes);} catch {return chunk;}
- });
+ if(typeof value!=='string')return value;
+ let s=value;
+ const cp=x=>{const n=x.codePointAt(0);return n<=255?n:cp1252Reverse[n]};
+ // Fix mojibake even if the same comment also contains legitimate emoji, CJK,
+ // or other characters that cannot be encoded as Windows-1252.
+ const corrupt=/(?:[ÃÂ][\u0080-\u00BF\u0152\u0153\u2018-\u201D\u20AC\u0178\u2122\u02DC\u0192]|â[\s\S]{2}|ðŸ[\s\S]{2})+/gu;
+ for(let attempt=0;attempt<3;attempt++){
+  const next=s.replace(corrupt,chunk=>{
+   const bytes=[];for(const ch of chunk){const b=cp(ch);if(b===undefined)return chunk;bytes.push(b);}
+   try{return utf8Strict.decode(Uint8Array.from(bytes));}catch{return chunk;}
+  });
+  if(next===s)break;s=next;
+ }
+ // Some historic exports have permanently missing emoji bytes (squares). We
+ // cannot invent the emoji; remove the damaged tail only, keep the words.
+ return s.replace(/(?:ð[Ÿ□\uFFFD][^\s]{0,16}|[□\uFFFD]{2,}[^\s]{0,12})/gu,'').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').trim();
 }
 
 const banned = /(?:^|[\/ _-])(messages?|chats?|direct.messages?|inbox|contacts?|passwords?|security|payment|payments|purchases?|credit.card|cookies?|addresses|locations?|autofill|login_history|device_information)(?:[\/ _.-]|$)/i;

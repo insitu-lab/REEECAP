@@ -16,3 +16,7 @@ Não somos afiliados à Meta, TikTok, Google ou Reddit. Para dúvidas ou correç
 ## Vídeos reais ilustrativos
 
 Para criar o rolo de filme de maneira automática, o REEECAP carrega vídeos reais licenciados hospedados no Mixkit ao abrir uma cena compatível. Essa chamada externa pode informar o seu IP e dados de conexão ao provedor da mídia. Não transmite seu ZIP, seus comentários, suas métricas nem credenciais. Os vídeos são meramente ilustrativos, não pertencem à conta analisada. Se preferir, substitua-os pelos seus próprios vídeos no editor.
+
+
+## Atualização de mídia — REEECAP 5
+Os arquivos ZIP de atividade seguem processados no navegador. O tutorial tenta imagens no próprio domínio e pode usar imagens externas de terceiros como fallback, o que revela a esses servidores o IP e informações normais da requisição. Vídeos e músicas devem ser hospedados no domínio do projeto após o build da GitHub Action; se ainda não estiverem instalados, o player tenta origens externas do Mixkit. Nenhum dado analisado do usuário é transmitido a essas fontes.

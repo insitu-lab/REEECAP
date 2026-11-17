@@ -14,3 +14,7 @@ Fontes individuais e licença:
 A licença permite editar e usar os clipes em projetos comerciais. Não vende nem apresenta os clipes isoladamente como biblioteca de stock. Se os clipes não carregarem com permissão CORS para canvas, **a exportação que precise do rolo de vídeo é bloqueada** para não gerar vídeo falso/mudo. Vídeos locais podem ser usados como alternativa.
 
 **Limitação da versão:** o ambiente de construção não conseguiu baixar os MP4s externos; o pacote inclui URLs de streaming, não os arquivos. Disponibilidade e CORS externos não foram verificados no dispositivo do usuário.
+
+
+## REEECAP 5
+O deploy preferido agora roda `.github/workflows/publish.yml`: o script `scripts/install_media.py --strict` baixa, verifica e otimiza 4 clips, hospedando-os no mesmo domínio do REEECAP. Se não conseguir obter todos, o deploy falha. Nesta cópia de código os arquivos de terceiros não estão embutidos.
