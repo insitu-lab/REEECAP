@@ -227,6 +227,15 @@ function exportSummary(){
  const s=buildStats(),lines=[`REEECAP — ${opts[platform].label} — ${year}`,'DADOS EXTRAÍDOS LOCALMENTE','',...activeTypes().map(k=>`${metricInfo[k][1]}: ${s.counts[k]}`),'',`${s.activeDays} dias com atividade registrada.`,'Categorias não encontradas não equivalem a zero.'];
  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`reeecap-${platform}-${year}-resumo.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function exportStudioSnapshot(){
+ if(!current||!Number.isFinite(Number(year)))return;
+ const stats=buildStats(),out={schema:'reeecap-studio-v1',platform,year:Number(year),demo:!!current.demo,
+  metrics:Object.fromEntries(activeTypes().map(key=>[key,Math.max(0,Number(stats.counts[key])||0)])),
+  activeDays:stats.activeDays,months:stats.months};
+ const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
+ a.download=`reeecap-studio-${platform}-${year}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
+}
 function newAnalysis(){
  closeDashboard();resultsByPlatform.delete(platform);current=null;year=null;updateResume();
  $('fileInput').value='';document.getElementById('importar')?.scrollIntoView({behavior:'smooth'});
@@ -275,6 +284,7 @@ function init(){
  $('readyViewStats')?.addEventListener('click',()=>{current=resultsByPlatform.get(platform)||null;if(current)openDashboard();});
  $('readyNewZip')?.addEventListener('click',newAnalysis);
  $('downloadVideo')?.addEventListener('click',()=>window.REEECAP_RECORD_VIDEO?.());
+ $('exportStudioJson')?.addEventListener('click',exportStudioSnapshot);
  $('downloadCard').addEventListener('click',cardPNG);$('downloadSummary').addEventListener('click',exportSummary);$('newAnalysis').addEventListener('click',newAnalysis);
  $('pixButton').addEventListener('click',()=>{const cfg=window.REEECAP_CONFIG||{};if(!cfg.pixKey){$('pixHint').textContent='A chave Pix ainda não foi cadastrada pelo criador do site.';return;}$('pixKeyText').textContent=cfg.pixKey;$('pixModal').classList.remove('hidden');});
  $('copyPix').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(window.REEECAP_CONFIG?.pixKey||'');$('copyPix').textContent='Copiado ✓';}catch{ $('copyPix').textContent='Selecione a chave acima para copiar';}});

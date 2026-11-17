@@ -63,3 +63,26 @@ Licença do código: MIT. Marcas pertencem aos respectivos titulares. O REEECAP 
 ## Revisão do vídeo 03 / 04
 
 Veja `REVISAO_VIDEO_03.md`. Testes feitos com ZIPs sintéticos e sessão simulada no Chromium (desktop e mobile). O arquivo pessoal de aproximadamente 400 MB ainda não foi testado.
+
+---
+
+## REEECAP 2.0 beta — continuação da v6
+
+Arquivos adicionados nesta continuação:
+
+- `experience.css` / `experience.js`: navegação e controles de idioma PT/EN/ES **parciais**, modo claro/escuro e atalho para o Studio independente. Preferências visuais são armazenadas localmente; ZIPs e resultados não são persistidos.
+- `video.js`: compositor de vídeo 9:16 em 720×1280 ou 1080×1920, duração por Story e música original opcionais. Tenta criar **MP4 se o navegador suportar MediaRecorder MP4**, e usa **WebM** caso contrário.
+- `app.js`: exporta **somente métricas agregadas** em JSON para abrir no Studio privado. Não inclui comentários ou dados privados brutos nesse formato.
+- `HISTORICO_REEECAP_2_0.md`: feedback das gravações e decisões de produto.
+- `CAPTURAS_E_FONTES.md`: fontes de ajuda e plano para prints reais.
+
+**Importante:** o Studio Premium é um projeto separado, entregue em outro ZIP. Não adicione seus arquivos ao repositório público do GitHub. O campo `premiumUrl` em `config.js` deve ficar vazio até a autenticação real estar habilitada em um domínio HTTPS protegido.
+
+### Testes realizados nesta entrega
+
+- Python 3.13.5, Node 22.16 e npm 10.9 funcionando; ZIP original com integridade válida.
+- `node --check` nos JS editados e suíte de navegação desktop/mobile com Chromium em modo offline. O ambiente de testes bloqueou navegação HTTP direta para localhost: os scripts e CSS foram injetados na página de testes, sem testar deploy real.
+- Reprodução de demo, seleção de idiomas, modo claro/escuro, abertura e fechamento de diálogos, exportação PNG privada e exportação **MP4 real** 720×1280, codec H.264, duração ~2,37 s (um Story simulado).
+- Teste do Studio separado com JSON sintético e MP4 1080×1920, H.264, duração ~4,82 s.
+
+**Não testado:** ZIP pessoal grande, autenticação Cloudflare real, postagem direta no Instagram e exportação no navegador nativo de aparelhos Android/iOS.
