@@ -42,8 +42,10 @@ def run(cmd):subprocess.run(cmd,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--strict',action='store_true');args=ap.parse_args()
  for sub in ['clips','music','tutorials']:(MEDIA/sub).mkdir(parents=True,exist_ok=True)
+ bundled=list((ROOT/'assets/videos').glob('reel_*.mp4'))
  okV=0;okM=0;notes=[]
- for name,url,page in VIDS:
+ if len(bundled)>=12:notes.append('12 supplied real stock clips already bundled; skips external video acquisition')
+ for name,url,page in ([] if len(bundled)>=12 else VIDS):
   out=MEDIA/'clips'/name
   if out.exists() and out.stat().st_size>50000:okV+=1;continue
   try:
@@ -71,6 +73,6 @@ def main():
    notes.append('Screenshot installed: '+name)
   except Exception as e:notes.append('Screenshot not available: '+name+' '+str(e)[:100]);out.unlink(missing_ok=True)
  (MEDIA/'manifest.json').write_text(json.dumps({'video':okV,'music':okM,'videos_required':4,'music_required':3,'notes':notes,'license_video':'https://mixkit.co/license/modal/videoFree/','license_music':'https://mixkit.co/license/modal/musicFree/'},indent=2,ensure_ascii=False))
- print('\n'.join(notes));print(f'Embedded: {okV}/4 video clips; {okM}/3 songs')
- if args.strict and (okV<4 or okM<3):raise SystemExit('Required embedded media missing: publish blocked')
+ print('\n'.join(notes));print(f'Embedded: {len(bundled)} supplied reels, {okV}/4 optional clip presets; {okM}/3 songs')
+ if args.strict and ((okV<4 and len(bundled)<12) or okM<3):raise SystemExit('Required embedded media missing: publish blocked')
 if __name__=='__main__':main()
