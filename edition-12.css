@@ -1,0 +1,99 @@
+/* REEECAP visual patch after creator's 17 Nov review.
+   Version 6.0 is the base. No personal ZIPs, checkout tokens or Pix keys here. */
+:root { --reeecap-ink:#100b1b; --reeecap-accent:#dc36b2; }
+#reeecapTheme{display:grid;place-items:center}
+#reeecapTheme svg{width:21px;height:21px;display:block;pointer-events:none}
+body:not([data-appearance=light]){background:#100d19!important;
+ background-image:radial-gradient(ellipse 65% 41% at 12% 22%,#5620685c,transparent 90%),radial-gradient(ellipse 50% 45% at 94% 43%,#7b236c3c,transparent 95%),linear-gradient(165deg,#100d19,#141020 58%,#0e101c)!important}
+body[data-appearance=light]{background:#f9f6fa!important;background-image:radial-gradient(ellipse 70% 41% at 0 10%,#e1b2de55,transparent 90%)!important}
+/* Remove neon edges from non-interactive panels. Retain clear keyboard focus. */
+.step-card,.step-card.active,.guide-screen,.step-main-pane,.export-panel,.feature-card,.privacy-section,.support-card,
+.studio-layout .step-card.active {box-shadow:none!important;text-shadow:none!important;border-color:#514257!important}
+.step-card.active{background:#2e2436!important}
+body[data-appearance=light] .step-card.active{background:#efe4f0!important;border-color:#c0a7bd!important}
+.studio-layout .step-card :is(p,h3),.step-card .step-num{color:inherit!important}
+.studio-layout :is(.category-tags span,.tag,.step-num){border-color:#6e577b!important;box-shadow:none!important}
+.tutorial-top{min-height:52px}.tutorial-position{display:none!important}
+.reeecap-tutorial{width:min(1130px,calc(100vw - 30px))!important}
+.tutorial-frame{height:min(920px,92dvh);min-height:min(570px,88dvh);max-height:92dvh!important}
+.tutorial-visual{min-height:0!important;flex:1!important;overflow:hidden!important;align-items:center!important;justify-content:center!important}
+.tutorial-image{height:calc(100% - 38px)!important;width:100%!important;object-fit:contain!important;max-height:none!important;min-height:0!important;transition:opacity .18s ease}
+.tutorial-visual[aria-busy=true] .tutorial-image{opacity:0}
+.tutorial-diagram{height:100%;max-width:640px;align-items:center;margin:auto;min-height:0}
+.diagram-app{height:min(450px,95%);width:min(470px,100%);max-height:100%}
+.tutorial-under{min-height:37px;flex:none}
+.tutorial-head{flex:none}.tutorial-top{flex:none}.tutorial-bottom{flex:none}
+#guideExportLink{display:none!important}
+/* Bottom navigation floats on the page, not inside or at the end of the footer.
+   Only one item is active, with a quiet frosted-glass highlight. */
+@media(max-width:699px){
+ body{padding-bottom:calc(105px + env(safe-area-inset-bottom))!important}
+ .mobile-dock{position:fixed!important;left:14px!important;right:14px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  width:auto!important;max-width:450px!important;margin:0 auto!important;z-index:45!important;display:flex!important;
+  padding:7px!important;align-items:center;min-height:70px!important;gap:3px!important;
+  border:1px solid rgba(255,255,255,.21)!important;border-radius:24px!important;
+  background:rgba(30,24,43,.77)!important;backdrop-filter:blur(26px) saturate(165%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(165%)!important;
+  box-shadow:0 14px 38px #07041355!important}
+ .mobile-dock a{flex:1!important;min-height:57px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;
+  align-items:center!important;gap:5px!important;padding:7px 3px!important;color:#c4bacc!important;font-size:12px!important;
+  border-radius:17px!important;text-decoration:none!important}
+ .mobile-dock a.is-active{background:rgba(255,255,255,.15)!important;color:#fff!important;text-decoration:none!important;
+  box-shadow:inset 0 1px 0 #ffffff2e!important}
+ body[data-appearance=light] .mobile-dock{background:rgba(249,245,252,.84)!important;border-color:#d6c8df!important;box-shadow:0 13px 28px #21132c30!important}
+ body[data-appearance=light] .mobile-dock a.is-active{background:#dcd0e5!important;color:#21132d!important}
+ .tutorial-frame{height:calc(100dvh - 30px);min-height:0}.reeecap-tutorial{max-height:calc(100dvh - 30px)!important}
+ .tutorial-image{max-height:none!important}.tutorial-visual{margin:7px 12px 0!important;padding:12px!important}
+ .tutorial-under{min-height:35px}.tutorial-under p{font-size:12px!important}
+ .tutorial-head h2{font-size:clamp(22px,6.2vw,34px)!important}.tutorial-head{padding:11px 17px 5px!important}
+ .diagram-app{height:min(350px,95%)}
+ .site-footer{padding-bottom:30px!important}
+}
+/* Days reveal is discovered by tapping the actual calendar. No visible instruction pill. */
+#calendarPeel{position:absolute!important;top:20%!important;left:50%!important;transform:translateX(-50%);width:52%!important;
+ height:54%!important;margin:0!important;border:0!important;background:transparent!important;opacity:0!important;
+ cursor:pointer!important;z-index:12!important;touch-action:manipulation!important}
+#calendarPeel:focus-visible{opacity:1!important;outline:3px solid #fff!important;outline-offset:-4px}
+.story-content.kind-days .story-main{display:flex;flex-direction:column;justify-content:flex-start;padding-top:7.8vh!important}
+.story-content.kind-days .story-icon{display:none!important}
+.story-content.kind-days .story-eyebrow{position:relative;margin-top:0}
+.story-content.kind-days .story-headline,.story-content.kind-days .story-body{position:relative;transform:translateY(43vh)}
+.story-content.kind-days:not(.is-revealed) .story-headline{opacity:0!important}
+/* Fewer and better elements in the About page — editorial hierarchy rather than oversized generic icons. */
+.feature-grid{gap:13px!important}
+.feature-card{border-radius:12px!important;min-height:220px!important;background:#20192a!important;padding:25px!important}
+.feature-large{min-height:340px!important}
+.feature-card :is(.feature-number,.feature-symbol,.feature-decor-heart,.feature-decor-clock,.feature-decor-bookmark,.feature-ring-art){display:none!important}
+.feature-card h3{font-size:clamp(22px,3vw,35px)!important;color:#f5eaf9!important}
+.feature-card p{font-size:clamp(14px,1.35vw,17px)!important;color:#d7c8da!important}
+.feature-card .feature-label{color:#cf9bd2!important}
+@media(max-width:650px){.feature-grid{grid-template-columns:1fr!important}.feature-card,.feature-large,.feat-story{grid-column:auto!important;min-height:175px!important}}
+.insitu-brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.insitu-brand img{display:block;width:102px;height:102px;object-fit:contain;filter:invert(1)}
+body[data-appearance=light] .insitu-brand img{filter:none}
+/* Premium plan selection: real interactions, but deliberately no fake payment confirmation. */
+.premium-info{width:min(930px,calc(100vw - 26px));max-height:94dvh;border-radius:16px}
+.premium-sheet{position:relative;padding:30px 30px 32px}
+.premium-sheet h2{margin:17px 0 8px;font-size:clamp(29px,4vw,44px)}
+.premium-sheet p{font-size:15px;color:#dad3df;max-width:760px;line-height:1.6}
+.plans-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:24px}
+.premium-plan{display:flex;min-width:0;flex-direction:column;align-items:flex-start;text-align:left;gap:14px;padding:19px 15px;border:1px solid #53475f;
+ border-radius:13px;background:#211a2b;color:#faf6ff;cursor:pointer;box-shadow:none;font:inherit}
+.premium-plan:hover{background:#30233e}.premium-plan[aria-pressed=true]{border-color:#eeaddb;background:#34203a}
+.premium-plan:focus-visible{outline:3px solid #d18adf;outline-offset:2px}
+.plan-name{font-size:18px;font-weight:840}.plan-old{font-size:13px;color:#afa1bb}.premium-plan strong{font-size:27px;letter-spacing:-.05em;white-space:nowrap}
+.premium-plan small{font-size:11px;font-weight:600;letter-spacing:0;color:#c9b9ca}.plan-detail{color:#dccfe0;line-height:1.5;font-size:13px}
+.premium-sheet .primary-btn{display:block;width:100%;margin-top:12px;font-size:15px}
+.premium-sheet .primary-btn:disabled{background:#4a4052!important;color:#d0c3d6!important;cursor:not-allowed}
+.plan-status{min-height:28px}.premium-sheet>small{display:block;color:#c0b4c9;margin-top:12px;line-height:1.5}
+@media(max-width:760px){.plans-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.premium-sheet{padding:24px 17px}.premium-plan{padding:16px 12px}.premium-plan strong{font-size:23px}}
+@media(max-width:340px){.premium-plan strong{font-size:21px}}
+
+/* Image and fallback share one fixed-size stage: no jumping while remote media loads. */
+.tutorial-stage{position:relative;display:flex;flex:1 1 auto;min-height:0;width:100%;align-items:center;justify-content:center}
+.tutorial-stage .tutorial-image{position:absolute;inset:0;height:100%!important;width:100%!important;object-fit:contain!important;max-height:none!important}
+.tutorial-stage .tutorial-diagram{display:flex;align-items:center;justify-content:center;flex:1;height:100%;max-height:100%}
+.tutorial-stage .tutorial-diagram[hidden]{display:none!important}
+.tutorial-visual .tutorial-under{width:100%}
+
+#exportLink{display:none!important}
