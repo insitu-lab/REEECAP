@@ -1,88 +1,68 @@
-# REEECAP — Recap Everything
+# REEECAP 2.1 — versão de desenvolvimento (não é um lançamento final)
 
-Projeto independente e **open source** do Insitu Lab. Um site estático, com uma retrospectiva baseada apenas nos dados que o usuário exporta das plataformas.
+REEECAP é uma retrospectiva visual criada a partir de **arquivos exportados pelo próprio usuário**. Esta edição é um site estático que roda o processamento de ZIP/JSON/CSV no navegador, por Web Worker. O código da área Premium não está incluído neste diretório.
 
-## Suporte desta edição (revisão dos vídeos 03 e 04)
+## Plataformas e dados
 
-- **Instagram (beta):** curtidas, salvos, comentários (inclusive texto quando exportado), posts, Reels, Stories e outras interações reconhecidas pelos arquivos JSON.
-- **TikTok (beta):** histórico de vídeos, curtidas, favoritos, compartilhamentos e outras atividades quando aparecem nos JSONs reconhecidos.
-- **YouTube (beta):** histórico de vídeos assistidos e pesquisas, conforme arquivos JSON do Google Takeout.
-- **Reddit (beta):** posts, comentários, votos positivos e negativos e salvos, conforme arquivos CSV exportados. Quando não há data, mostra o total como *sem data*, **não** como estatística do ano.
+| Plataforma | Suporte local | Limites | 
+| --- | --- | --- |
+| Instagram | JSON: curtidas, salvos, comentários, posts/Reels/Stories, interações e relacionamentos quando reconhecidos | A exportação pode omitir atividades; não há acesso à conta nem como medir popularidade de comentários sem os dados correspondentes |
+| TikTok | JSON: histórico de vídeos, curtidas, favoritos, comentários e outras categorias reconhecidas | Os nomes/estruturas variam conforme o formato exportado |
+| YouTube | JSON Google Takeout: histórico de visualização e pesquisas | Cada registro não representa necessariamente um vídeo único |
+| Reddit | CSV: posts, comentários, votos, salvos conforme categorias reconhecidas | Atividades sem data não entram artificialmente nas estatísticas anuais |
 
-**Não existe conexão às contas.** A pessoa baixa os dados diretamente da rede social. O REEECAP funciona localmente no navegador, por Web Worker. O código não tem servidor de coleta, analytics ou cookies, e a política de segurança bloqueia requisições de rede feitas pelo aplicativo.
+Não há integração com Spotify nesta versão. A demonstração de cada rede tem dados fictícios e não mistura plataformas. O usuário deve selecionar na plataforma de origem apenas informações de atividade, evitando mensagens privadas, contatos, localização e credenciais.
 
-## Instalação / publicação
+## Recursos implementados e testados
 
-Envie **o conteúdo da pasta** para a raiz do repositório GitHub (não envie o ZIP inteiro como único arquivo) e configure Settings → Pages → Deploy from a branch → main → /(root). O arquivo `index.html` precisa estar na raiz, junto de `app.js`, `worker.js`, folhas CSS e a pasta `assets`.
+- Navegação por plataforma, guias de importação, relatório anual, Stories, painel de métricas e exportação de imagem/arquivo-resumo.
+- Tradução do site e relatórios em português, inglês e espanhol, com alteração durante a retrospectiva.
+- Tema escuro/claro, ajustes de espaçamento e responsividade (testes de largura em Chromium entre 320 e 1920 px).
+- Camadas decorativas contextualizadas (corações, avião de compartilhamento, rolos de vídeo, comentários em movimento, anéis de Stories). Sem fingir vídeos da conta do usuário.
+- Compositor de vídeo 9:16 com cenas selecionáveis, durações e tamanhos configuráveis; trilha original incluída ou música escolhida pelo usuário. Sem senha nem upload.
+- MP4/H.264 quando suportado pelo navegador, WebM VP9/Opus como alternativa. **Não há garantia de MP4 com som em todos os navegadores**.
+- JSON de métricas **agregadas**, intencionalmente sem comentários, para importar no Studio privado (`reeecap-studio-v1`).
+- Reconhecimento de categorias e reparação de casos típicos de caracteres UTF-8 mal codificados em textos exportados.
 
-Em computador, pode executar `python3 -m http.server 8000` nesta pasta e abrir `http://localhost:8000`. Para Web Workers, não abra diretamente `file://`.
+## Arquivos principais
 
-## Como usar
+- `index.html`, `style.css`, `atelier.css`, `edition-02.css` até `edition-06.css`: interface e revisões visuais.
+- `app.js`, `atelier.js`: fluxo da retrospectiva, importação, telas e relatórios.
+- `worker.js`: processamento local dos arquivos (inclui pako MIT para ZIP).
+- `locale-full.js`, `experience.js`, `experience.css`: traduções, tema e controles de acesso ao Studio (apenas link).
+- `video.js`: compositor de vídeo no navegador e exportação local.
+- `config.js`: link do Premium desativado até configuração do domínio protegido; não coloque segredos neste arquivo.
+- `CAPTURAS_E_FONTES.md`, `HISTORICO_REEECAP_2_0.md`, `ESTADO_DE_VALIDACAO.md`: fontes, decisões e pendências de lançamento.
 
-1. Escolha Instagram, TikTok, YouTube ou Reddit.
-2. Siga o guia por aplicativo. Exporte **apenas dados de atividade**, evitando conversas, localização, contatos, IPs e arquivos de segurança.
-3. Selecione o arquivo ZIP, JSON ou CSV pelo botão da página.
-4. Explore os Stories e as métricas. Ao fechar, surge uma tela de retrospectiva pronta, com ações para assistir novamente, ver os dados ou importar outro arquivo **enquanto a aba permanecer aberta**.
-5. No painel, pesquise comentários que vieram no arquivo e, se quiser, exporte seus próprios textos em `.txt`. Isso não é enviado a servidor.
+## Rodar localmente
 
-## Limitações importantes
+Execute `python -m http.server 8000` na raiz deste diretório e abra `http://localhost:8000`. Não abra via `file://`, porque o Worker precisa de um servidor local. Para publicar o site gratuito no GitHub Pages, envie o **conteúdo** desta pasta (com `index.html` na raiz) e ative Pages no ramo `main`. O código Premium deve ser publicado **separadamente e protegido por autenticação**.
 
-- O formato das exportações muda com o tempo. Ainda falta testar amostras reais grandes (como ZIPs de aproximadamente 400 MB). Importações de alto volume podem exceder a memória do celular.
-- O total de visualizações é o número de **registros no histórico**, não necessariamente vídeos únicos.
-- Não há contagem de reproduções de Reels se a exportação não trouxer histórico correspondente.
-- Não dá para identificar o **comentário mais curtido** sem que a exportação traga as curtidas recebidas por comentário.
-- Algumas atividades do Reddit (salvos e votos) podem vir sem data; **não** são atribuídas a um ano por suposição.
-- A visualização não insere fotos ou vídeos pessoais sem consentimento; para fundos, o aplicativo usa somente elementos visuais próprios. Os textos de comentários podem aparecer apenas na sua retrospectiva local, sem integrar a exportação de imagem/vídeo.
-- Exportação opcional de vídeo vertical em **WebM**, com trilha original feita para este projeto (sem músicas comerciais). MediaRecorder não é compatível com todos os navegadores; em alguns, o áudio pode ser bloqueado. O vídeo é composto de cards gerados localmente e não inventa cenas de vídeos assistidos.
-- Corrige padrões reconhecíveis de texto UTF-8 interpretado como Latin-1 (ex.: “JÃ¡”); ainda é possível que existam codificações incomuns não corrigidas.
-- Nada é salvo entre recarregamentos. O cache de resultados é apenas da **memória da aba atual** para reabrir a retrospectiva sem importar novamente.
-- A demonstração utiliza dados **fictícios e identificados**; nunca confundi-los com análise real.
+## Testes executáveis
 
-## Código e licenças
+Na máquina que contém Chromium, Playwright, Python e ffprobe:
 
-- `app.js`: navegação dos Stories, métricas, busca em comentários, exportação PNG/TXT.
-- `worker.js`: leitor local ZIP/JSON/CSV, com `pako 0.2.9` (MIT) incorporado para descompressão.
-- `atelier.js`: navegação e tutorial de exportação por plataforma.
-- `edition-04.css`: base visual da revisão anterior.
-- `edition-05.css`: novo refinamento de tipografia, espaço, cartões e tela de recap pronta.
-- `video.js`: exportação local da retrospectiva em WebM.
-- `assets/reeecap-original-loop.mp3`: faixa instrumental original do projeto. Música opcional no player.
-- `config.js`: chave Pix opcional. Nunca publique dados privados nessa configuração.
-- `assets/brands`: Font Awesome Free, SVGs de marcas sob CC BY 4.0; veja `ATTRIBUTION.md`.
-- `PRIVACIDADE.md`: políticas e orientações.
+```sh
+python tests/test_real_browser.py
+python tests/test_locale.py
+python tests/test_audio_public.py
+python tests/test_story_art.py
+python tests/test_responsive.py
+python tests/test_big_zip.py
+python tests/test_png_parity.py
+```
 
-Licença do código: MIT. Marcas pertencem aos respectivos titulares. O REEECAP não é afiliado à Meta, ByteDance, Google ou Reddit.
+Esses testes usam dados **sintéticos**, não são evidência de compatibilidade com toda e qualquer exportação real. O teste de ZIP grande verifica o processamento artificial de um arquivo de 400 MB no ambiente de desenvolvimento, e **não** a memória de um aparelho físico.
 
-## Próximas prioridades
+## Limitações críticas para um lançamento
 
-1. Validar contagem de posts/Reels com exportações reais anonimizadas, inclusive deduplicação.
-2. Testar ZIPs grandes em dispositivos lentos.
-3. Completar os guias com capturas de telas reais e atuais, com permissões adequadas.
-4. Preparar traduções para inglês e espanhol.
+1. Capturas *reais* e recentes dos tutoriais das quatro plataformas ainda não foram fornecidas ou licenciadas; os cartões atuais são identificados como diagramas, não prints. Ver `CAPTURAS_E_FONTES.md`.
+2. Precisam ser validadas exportações genuínas e anonimizadas de Instagram, TikTok, YouTube e Reddit, com formatos e idiomas diferentes.
+3. A exportação MP4 com áudio depende de codecs de cada navegador; no Chromium Linux testado, áudio+vídeo foi gerado como WebM. Postagem direta no Instagram e aparelhos Android/iOS reais ainda não foram testados.
+4. O Premium está em outro pacote; não há cobrança real nem autenticação sem Cloudflare Access configurado pelo proprietário. **Não publique ou venda acesso antes disso.**
 
-## Revisão do vídeo 03 / 04
+Nada é salvo automaticamente no servidor. Preferências visuais podem usar armazenamento local; arquivos originais e resultados pessoais ficam na memória da aba, até ela ser fechada. Ver `PRIVACIDADE.md`.
 
-Veja `REVISAO_VIDEO_03.md`. Testes feitos com ZIPs sintéticos e sessão simulada no Chromium (desktop e mobile). O arquivo pessoal de aproximadamente 400 MB ainda não foi testado.
+## Licenças
 
----
-
-## REEECAP 2.0 beta — continuação da v6
-
-Arquivos adicionados nesta continuação:
-
-- `experience.css` / `experience.js`: navegação e controles de idioma PT/EN/ES **parciais**, modo claro/escuro e atalho para o Studio independente. Preferências visuais são armazenadas localmente; ZIPs e resultados não são persistidos.
-- `video.js`: compositor de vídeo 9:16 em 720×1280 ou 1080×1920, duração por Story e música original opcionais. Tenta criar **MP4 se o navegador suportar MediaRecorder MP4**, e usa **WebM** caso contrário.
-- `app.js`: exporta **somente métricas agregadas** em JSON para abrir no Studio privado. Não inclui comentários ou dados privados brutos nesse formato.
-- `HISTORICO_REEECAP_2_0.md`: feedback das gravações e decisões de produto.
-- `CAPTURAS_E_FONTES.md`: fontes de ajuda e plano para prints reais.
-
-**Importante:** o Studio Premium é um projeto separado, entregue em outro ZIP. Não adicione seus arquivos ao repositório público do GitHub. O campo `premiumUrl` em `config.js` deve ficar vazio até a autenticação real estar habilitada em um domínio HTTPS protegido.
-
-### Testes realizados nesta entrega
-
-- Python 3.13.5, Node 22.16 e npm 10.9 funcionando; ZIP original com integridade válida.
-- `node --check` nos JS editados e suíte de navegação desktop/mobile com Chromium em modo offline. O ambiente de testes bloqueou navegação HTTP direta para localhost: os scripts e CSS foram injetados na página de testes, sem testar deploy real.
-- Reprodução de demo, seleção de idiomas, modo claro/escuro, abertura e fechamento de diálogos, exportação PNG privada e exportação **MP4 real** 720×1280, codec H.264, duração ~2,37 s (um Story simulado).
-- Teste do Studio separado com JSON sintético e MP4 1080×1920, H.264, duração ~4,82 s.
-
-**Não testado:** ZIP pessoal grande, autenticação Cloudflare real, postagem direta no Instagram e exportação no navegador nativo de aparelhos Android/iOS.
+Código MIT. Componentes de terceiros e marcas em `ATTRIBUTION.md`; Instagram, TikTok, YouTube e Reddit pertencem aos respectivos titulares. REEECAP não é afiliado a essas empresas.

@@ -4,6 +4,11 @@
 const $ = id => document.getElementById(id);
 const fmt = v => new Intl.NumberFormat(document.documentElement.lang || 'pt-BR').format(v);
 const html = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const language=()=>window.REEECAP_FULL_LOCALE?.get()||'pt';
+const metric=(key)=>window.REEECAP_FULL_LOCALE?.metric(key)||metricInfo[key]?.slice(1)||[key,key];
+const guide=(platform)=>window.REEECAP_FULL_LOCALE?.guide(platform)||opts[platform];
+const l=(key,defaultText)=>window.REEECAP_FULL_LOCALE?.dynamic(key)||defaultText;
+const dateLocale=()=>({pt:'pt-BR',en:'en-US',es:'es-ES'})[language()]||'pt-BR';
 const opts = {
  instagram:{label:'Instagram',color:'#ff6b9e',url:'https://accountscenter.instagram.com/info_and_permissions/',
   steps:['No Instagram, abra Perfil → ☰ → Central de Contas → Suas informações e permissões → Exportar suas informações.', 'Escolha apenas curtidas, comentários, salvos, interações, seguidores/seguindo e publicações (se quiser). Evite mensagens, contatos, localização e fotos/vídeos.', 'Escolha JSON e todo o período. Baixe o ZIP quando o Instagram terminar de preparar a exportação.'],
@@ -34,24 +39,24 @@ function selectPlatform(next){
  updateResume();
 
  document.querySelectorAll('[data-platform]').forEach(el=>{el.classList.toggle('active',el.dataset.platform===next);el.setAttribute('aria-pressed',String(el.dataset.platform===next));});
- const o=opts[next];
- const steps=document.querySelectorAll('.step-card p');steps.forEach((el,i)=>el.textContent=o.steps[i]);
+ const o=opts[next],translated=guide(next);
+ const steps=document.querySelectorAll('.step-card p');steps.forEach((el,i)=>el.textContent=translated.steps[i]);
  $('exportPlatform').textContent=o.label;
- $('wantedList').innerHTML=o.wanted.map(x=>'<span>'+html(x)+'</span>').join('');
- $('optionalList').innerHTML=o.optional.map(x=>'<span>'+html(x)+'</span>').join('');
- $('notExport').textContent=o.no;
- $('formatAdvice').textContent=next==='reddit'?'Use o ZIP original com arquivos CSV. Escolha o período disponível.':'Formato: JSON, período: todo o período.';
+ $('wantedList').innerHTML=translated.wanted.map(x=>'<span>'+html(x)+'</span>').join('');
+ $('optionalList').innerHTML=translated.optional.map(x=>'<span>'+html(x)+'</span>').join('');
+ $('notExport').textContent=translated.no;
+ $('formatAdvice').textContent=next==='reddit'?l('csvAdvice','Use o ZIP original com arquivos CSV. Escolha o período disponível.'):l('jsonAdvice','Formato: JSON, período: todo o período.');
  $('exportLink').href=o.url;
- $('exportLink').textContent='Abrir exportação do '+o.label;
+ $('exportLink').textContent=l('export','Abrir exportação do ')+o.label;
  $('importPlatform').textContent=o.label;
- $('dropzone').setAttribute('aria-label','Importe seus dados de '+o.label);
+ $('dropzone').setAttribute('aria-label',l('import','Importe seus dados de ')+o.label);
  $('errorBox').classList.add('hidden');
 }
 function updateResume(){
  const available=resultsByPlatform.has(platform);
  const btn=$('resumeRecap');if(btn)btn.hidden=!available;
  const ready=$('readySection');if(ready)ready.hidden=!available;
- const name=$('readyPlatform');if(name)name.textContent=(opts[platform]?.label||'Rede social')+' · '+(year||'Retrospectiva');
+ const name=$('readyPlatform');if(name)name.textContent=(opts[platform]?.label||'Rede social')+' · '+(year||l('ready','Retrospectiva'));
  document.body.dataset.resultReady=String(available);
 }
 function countForYear(type){return current.events.filter(e=>e.type===type&&new Date(e.time).getUTCFullYear()===Number(year)).length;}
@@ -72,32 +77,53 @@ function buildStats(){
 function activeTypes(){return Object.keys(metricInfo).filter(k=>current?.seen.includes(k));}
 function platformPalette(){return {instagram:['#622cb5','#ee4c98'],tiktok:['#0d1929','#c32075'],youtube:['#8e143d','#e24544'],reddit:['#ac2808','#fa6332']}[platform]||['#622cb5','#ee4c98'];}
 function buildStories(){
- const s=buildStats(),n=Number(year);const brandColors=platformPalette();stories=[{kind:'intro',eyebrow:`${opts[platform].label.toUpperCase()} / RETROSPECTIVA`,title:`O que ficou de ${year}?`,body:`Estes são os registros de ${opts[platform].label} encontrados na sua exportação.`,symbol:'',color:brandColors}];
+ const texts={pt:{time:'SUA LINHA DO TEMPO',month:'O mês mais movimentado',day:'VOCÊ ESTEVE POR AQUI',dayNote:'Dias diferentes com ao menos uma atividade registrada.',ending:'FIM? SÓ DO ANO.',endTitle:'Seu ano não cabia em um story.',endDesc:'Compartilhe apenas as estatísticas que quiser. Seus arquivos continuam no seu aparelho.'},en:{time:'YOUR TIMELINE',month:'Your busiest month',day:'YOU WERE HERE',dayNote:'Different days with at least one recorded activity.',ending:'THE END? ONLY OF THE YEAR.',endTitle:'Your year was bigger than one Story.',endDesc:'Share only the stats you choose. Your files stay on your device.'},es:{time:'TU CRONOLOGÍA',month:'Tu mes más activo',day:'ESTUVISTE AQUÍ',dayNote:'Días diferentes con al menos una actividad registrada.',ending:'¿EL FIN? SOLO DEL AÑO.',endTitle:'Tu año no cabía en una historia.',endDesc:'Comparte solo las estadísticas que quieras. Tus archivos permanecen en tu dispositivo.'}}[language()]||{};
+ const s=buildStats(),n=Number(year);const brandColors=platformPalette();stories=[{kind:'intro',eyebrow:`${opts[platform].label.toUpperCase()} / ${language()==='en'?'RECAP':language()==='es'?'RETROSPECTIVA':'RETROSPECTIVA'}`,title:language()==='en'?`What did ${year} leave behind?`:language()==='es'?`¿Qué dejó ${year}?`:`O que ficou de ${year}?`,body:language()==='en'?`These are the ${opts[platform].label} records found in your export.`:language()==='es'?`Estos son los registros de ${opts[platform].label} encontrados en tu exportación.`:`Estes são os registros de ${opts[platform].label} encontrados na sua exportação.`,symbol:'',color:brandColors}];
  let sorted=activeTypes().filter(k=>s.counts[k]>0).sort((a,b)=>s.counts[b]-s.counts[a]);
  for(const key of sorted.slice(0,9)){
-  const [symbol,title,description]=metricInfo[key];
+  const [symbol]=metricInfo[key], [title,description]=metric(key);
   stories.push({kind:'number',eyebrow:title.toUpperCase(),value:fmt(s.counts[key]),title,body:description,symbol,color:brandColors,metricKey:key});
  }
- if(s.events.length){stories.push({kind:'month',eyebrow:'SUA LINHA DO TEMPO',title:'O mês mais movimentado',value:new Date(Date.UTC(n,s.busiest,1)).toLocaleDateString('pt-BR',{month:'long',timeZone:'UTC'}),body:`${fmt(s.months[s.busiest])} ações registradas nesse mês.`,symbol:'◷',color:brandColors,months:s.months});
- stories.push({kind:'days',eyebrow:'VOCÊ ESTEVE POR AQUI',title:`${fmt(s.activeDays)} dias`,body:'Dias diferentes com ao menos uma atividade registrada.',symbol:'✳',color:brandColors});}
- stories.push({kind:'end',eyebrow:'FIM? SÓ DO ANO.',title:'Seu ano não cabia em um story.',body:'Compartilhe apenas as estatísticas que quiser. Seus arquivos continuam no seu aparelho.',symbol:'',color:brandColors});
+ if(s.events.length){stories.push({kind:'month',eyebrow:texts.time,title:texts.month,value:new Date(Date.UTC(n,s.busiest,1)).toLocaleDateString(dateLocale(),{month:'long',timeZone:'UTC'}),body:language()==='pt'?`${fmt(s.months[s.busiest])} ações registradas nesse mês.`:`${fmt(s.months[s.busiest])} ${l('month','ações registradas nesse mês.')}`,symbol:'◷',color:brandColors,months:s.months});
+ stories.push({kind:'days',eyebrow:texts.day,title:`${fmt(s.activeDays)} ${l('days','dias')}`,body:texts.dayNote,symbol:'✳',color:brandColors});}
+ stories.push({kind:'end',eyebrow:texts.ending,title:texts.endTitle,body:texts.endDesc,symbol:'',color:brandColors});
 }
 function storyIcon(s){
  const icons={likes:'<path d="M20.8 4.6a5.6 5.6 0 0 0-7.9 0l-.9.9-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.5a5.6 5.6 0 0 0 0-7.9z"/>',watched:'<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/>',saved:'<path d="M5 3h14v18l-7-5-7 5z"/>',storyPosts:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5"/>',stories:'<circle cx="12" cy="12" r="9"/><path d="m12 6 0 6 4 2"/>',following:'<circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-6 11-6 11 0M18 8v8M14 12h8"/>',followers:'<circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-6 11-6 11 0M16 7l2 2 4-4"/>',comments:'<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.2a9 9 0 0 1-.9-4.3A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5z"/>',reels:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M8 3l4 6M16 3l4 6"/><path d="m10 12 5 3-5 3z"/>',posts:'<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',shares:'<path d="m21 3-8.2 18-3.2-7-6.6-3.3L21 3z"/><path d="m9.6 14 11.4-11"/>',searches:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'};
- const key=Object.keys(metricInfo).find(k=>metricInfo[k][1]===s.title)||'';
+ const key=s.metricKey||Object.keys(metricInfo).find(k=>metricInfo[k][1]===s.title||metric(k)[0]===s.title)||'';
  const body=icons[key]||'<circle cx="12" cy="12" r="9"/>';
  return '<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+body+'</svg>';
+}
+function storyAtmosphere(s,rolling){
+ if(s.kind!=='number')return '';
+ if(s.metricKey==='comments'&&rolling)return rolling;
+ const icons={
+  likes:'<path d="M12 20.2 4.4 12.8A5.3 5.3 0 0 1 12 5.3a5.3 5.3 0 0 1 7.6 7.5Z"/>',
+  shares:'<path d="m2.3 11 19.2-8.5-6.4 19.1-4.2-8.1L2.3 11Z"/><path d="M10.9 13.5 21.5 2.5"/>',
+  saved:'<path d="M5 3h14v18l-7-4.7L5 21V3Z"/>',
+  watched:'<rect x="2" y="4" width="20" height="16" rx="4"/><path d="m10 9 6 3-6 3V9Z"/>',
+  posts:'<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.6" cy="6.6" r="1"/>',
+  reels:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M8 3l4 6M16 3l4 6M10 12l6 3-6 3z"/>',
+  stories:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><path d="M12 8v5l3 2"/>',
+  followers:'<circle cx="9" cy="8" r="3"/><path d="M2.5 20c0-7 13-7 13 0M15.5 10l2 2 4-4"/>',
+  following:'<circle cx="9" cy="8" r="3"/><path d="M2.5 20c0-7 13-7 13 0M18 6v10M13 11h10"/>',
+  searches:'<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',
+  comments:'<path d="M20 11.4a8 8 0 0 1-8 8 8.1 8.1 0 0 1-4-.9L3 21l1.9-5a8 8 0 0 1-.9-4.6 8 8 0 0 1 16 0Z"/>'
+ };
+ const key=s.metricKey||'';const shape=icons[key];if(!shape)return '';
+ const symbol='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">'+shape+'</svg>';
+ return '<div class="story-atmosphere atmosphere-'+key+'" aria-hidden="true">'+Array.from({length:['watched','posts','reels'].includes(key)?5:9},(_,i)=>'<span class="drift-'+i+'">'+symbol+'</span>').join('')+'</div>';
 }
 function storyHTML(s){
  const chart=s.months?'<div class="story-chart">'+s.months.map((v,i)=>'<span class="'+(v===Math.max(...s.months)?'hot':'')+'" style="height:'+Math.max(3,100*v/(Math.max(...s.months)||1))+'%"></span>').join('')+'</div>':'';
  const commentSnippets=s.metricKey==='comments'?filteredEvents().filter(e=>e.type==='comments'&&e.label).slice(0,7).map(e=>e.label.slice(0,84)):[];
  const rolling=commentSnippets.length?'<div class="story-comment-roll" aria-hidden="true">'+commentSnippets.map(v=>'<span>'+html(v)+'</span>').join('')+'</div>':'';
- const shapes=s.metricKey==='comments'&&rolling?rolling:s.kind==='number'?'<div class="ambient-posts" aria-hidden="true"><span></span><span></span><span></span></div>':'';
+ const shapes=storyAtmosphere(s,rolling);
  const brandSrc=document.querySelector('.platform-card[data-platform="'+platform+'"] img')?.getAttribute('src')||'./assets/brands/'+platform+'.svg';
  const endSrc=document.querySelector('.story-logo img')?.getAttribute('src')||'./assets/reeecap-c-official.png';
  const ico=s.kind==='number'?storyIcon(s):s.kind==='intro'?'<img alt="" src="'+html(brandSrc)+'"/>':'<img alt="" src="'+html(endSrc)+'"/>';
  const coverMark=s.kind==='intro'?'<div class="story-cover-mark" aria-hidden="true"><img src="'+html(brandSrc)+'" alt=""/></div>':'';
- return '<div class="story-content kind-'+html(s.kind)+'">'+coverMark+shapes+'<div class="story-main"><div class="story-icon" aria-hidden="true">'+ico+'</div><div class="story-eyebrow">'+html(s.eyebrow)+'</div>'+(s.value?'<h2 class="story-number">'+html(s.value)+'</h2>':'')+'<h2 class="story-headline">'+html(s.title)+'</h2><p class="story-body">'+html(s.body)+'</p>'+chart+(current?.demo?'<span class="demo-label">Prévia de demonstração</span>':'')+'</div></div>';
+ return '<div class="story-content kind-'+html(s.kind)+'">'+coverMark+shapes+'<div class="story-main"><div class="story-icon" aria-hidden="true">'+ico+'</div><div class="story-eyebrow">'+html(s.eyebrow)+'</div>'+(s.value?'<h2 class="story-number">'+html(s.value)+'</h2>':'')+'<h2 class="story-headline">'+html(s.title)+'</h2><p class="story-body">'+html(s.body)+'</p>'+chart+(current?.demo?'<span class="demo-label">'+({pt:'Prévia de demonstração',en:'Demo preview',es:'Vista previa de demostración'}[language()])+'</span>':'')+'</div></div>';
 }
 function renderStory(){
  const s=stories[index];if(!s)return;
@@ -120,7 +146,7 @@ function renderStory(){
   requestAnimationFrame(()=>{incoming.style.opacity='1';});
   backdropTimer=setTimeout(()=>{outgoing.style.opacity='0';},730);backdropLayer=1-backdropLayer;
  }
- $('storyCounter').textContent='Story '+(index+1)+' de '+stories.length;
+ $('storyCounter').textContent=(language()==='es'?'Historia ':'Story ')+(index+1)+(language()==='en'?' of ':' de ')+stories.length;
  $('storyProgress').innerHTML=stories.map((_,i)=>'<span><i style="width:'+(i<index?100:i===index?0:0)+'%"></i></span>').join('');
  elapsed=0;
 }
@@ -132,10 +158,10 @@ function goStory(i){index=Math.min(Math.max(i,0),stories.length-1);renderStory()
 function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';if(!overlayHistoryOpen){try{history.pushState({reeecapOverlay:true},'',location.pathname+location.search+'#recap');overlayHistoryOpen=true;}catch{overlayHistoryOpen=false;}}startClock();}
 function closeRecap(){ambientMusic.pause();musicOn=false;const m=$('musicToggle');if(m){m.setAttribute('aria-pressed','false');m.classList.remove('sound-on');}clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(current?.demo&&resultsByPlatform.has(platform)){current=resultsByPlatform.get(platform);const years=[...new Set(current.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].sort((a,b)=>b-a);year=years[0]||new Date().getUTCFullYear();}updateResume();if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
 function makeCharts(s){
- const max=Math.max(1,...s.months);const names=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+ const max=Math.max(1,...s.months);const names=Array.from({length:12},(_,i)=>new Date(Date.UTC(2026,i,1)).toLocaleDateString(dateLocale(),{month:'short',timeZone:'UTC'}).replace('.',''));
  $('monthChart').innerHTML=s.months.map((v,i)=>'<div class="month-col"><strong>'+fmt(v)+'</strong><div class="month-bar" style="height:'+Math.max(2,v/max*170)+'px"></div><span>'+names[i]+'</span></div>').join('');
  const hmax=Math.max(1,...s.hours);$('hourChart').innerHTML=s.hours.map((v,i)=>'<div class="hour-cell" style="background:rgba(215,255,88,'+(0.08+0.86*v/hmax)+');color:'+(v/hmax>.45?'#180a25':'#ddd')+'" title="'+i+'h: '+v+' registros">'+i+'h</div>').join('');
- $('topAccounts').innerHTML=s.ordered.length?s.ordered.map(([name,v])=>'<div class="account-row"><span>'+html(name)+'</span><strong>'+fmt(v)+'</strong></div>').join(''):'<p class="coverage-note">Este arquivo não trouxe nomes ou artistas identificáveis para um ranking.</p>';
+ $('topAccounts').innerHTML=s.ordered.length?s.ordered.map(([name,v])=>'<div class="account-row"><span>'+html(name)+'</span><strong>'+fmt(v)+'</strong></div>').join(''):'<p class="coverage-note">'+html(l('noAccounts','Este arquivo não trouxe nomes ou artistas identificáveis para um ranking.'))+'</p>';
 }
 
 let visibleComments=50;
@@ -147,15 +173,15 @@ function renderComments(){
  const panel=$('commentsPanel');if(!panel)return;
  const all=getComments();panel.hidden=!all.length;
  if(!all.length)return;
- const term=$('commentsSearch').value.toLocaleLowerCase('pt-BR').trim();
- const match=term?all.filter(e=>e.label.toLocaleLowerCase('pt-BR').includes(term)):all;
- $('commentsTotal').textContent=fmt(match.length)+' de '+fmt(all.length);
- $('commentsList').innerHTML=match.slice(0,visibleComments).map(e=>'<div class="comment-record"><time>'+html(new Date(e.time).toLocaleDateString('pt-BR',{timeZone:'UTC'}))+'</time><p>'+html(e.label)+'</p></div>').join('')||'<p>Nenhum comentário corresponde à pesquisa.</p>';
+ const term=$('commentsSearch').value.toLocaleLowerCase(dateLocale()).trim();
+ const match=term?all.filter(e=>e.label.toLocaleLowerCase(dateLocale()).includes(term)):all;
+ $('commentsTotal').textContent=fmt(match.length)+(language()==='en'?' of ':' de ')+fmt(all.length);
+ $('commentsList').innerHTML=match.slice(0,visibleComments).map(e=>'<div class="comment-record"><time>'+html(new Date(e.time).toLocaleDateString(dateLocale(),{timeZone:'UTC'}))+'</time><p>'+html(e.label)+'</p></div>').join('')||'<p>'+html(l('noComments','Nenhum comentário corresponde à pesquisa.'))+'</p>';
  $('moreComments').hidden=visibleComments>=match.length;
 }
 function downloadComments(){
  const rows=getComments();if(!rows.length)return;
- const text=rows.map(e=>new Date(e.time).toLocaleDateString('pt-BR',{timeZone:'UTC'})+' | '+e.label.replace(/\s+/g,' ')).join('\n\n');
+ const text=rows.map(e=>new Date(e.time).toLocaleDateString(dateLocale(),{timeZone:'UTC'})+' | '+e.label.replace(/\s+/g,' ')).join('\n\n');
  const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='reeecap-comentarios-'+platform+'-'+year+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
@@ -163,18 +189,18 @@ function downloadComments(){
 function renderDashboard(){
  const s=buildStats();
  $('dashboardYearLabel').textContent=year;
- const undated=current.undatedCounts||{};const undatedText=Object.entries(undated).filter(([,n])=>n>0).map(([k,n])=>(metricInfo[k]?.[1]||k)+': '+fmt(n)).join(' · ');
- $('coverageNote').textContent=`${current.demo?'DEMONSTRAÇÃO COM DADOS FICTÍCIOS. ':''}${fmt(s.events.length)} atividades com data em ${year} · ${opts[platform].label}. ${undatedText?'Registros SEM data, não atribuídos a '+year+': '+undatedText+'. ':''}Dados ausentes não são considerados zero. Horários em UTC. ${current.parseErrors?'Alguns arquivos não puderam ser interpretados.':''}`;
+ const undated=current.undatedCounts||{};const undatedText=Object.entries(undated).filter(([,n])=>n>0).map(([k,n])=>(metricInfo[k]?metric(k)[0]:k)+': '+fmt(n)).join(' · ');
+ $('coverageNote').textContent=`${current.demo?l('demo','DEMONSTRAÇÃO COM DADOS FICTÍCIOS. '):''}${fmt(s.events.length)} ${l('dated','atividades com data em ')}${year} · ${opts[platform].label}. ${undatedText?l('undated','Registros SEM data, não atribuídos a ')+year+': '+undatedText+'. ':''}${l('noZero','Dados ausentes não são considerados zero. Horários em UTC.')} ${current.parseErrors?l('errors','Alguns arquivos não puderam ser interpretados.'):''}`;
  const keys=activeTypes();
- $('dashboardMetrics').innerHTML=keys.length?keys.map(key=>{const [ico,name,desc]=metricInfo[key];const value=s.counts[key];const untimed=undated[key]||0;return '<article class="metric-tile"><div class="metric-icon">'+storyIcon({title:name})+'</div><div class="metric-value">'+(untimed&&!value?'—':fmt(value))+'</div><div class="metric-name">'+html(name)+'</div><div class="metric-desc">'+(untimed?'Sem data: '+fmt(untimed)+' registros. ':'')+html(desc)+'</div></article>';}).join(''):'<p>Nenhuma categoria compatível encontrada.</p>';
- $('dataCoverage').innerHTML=Object.keys(metricInfo).map(key=>'<div class="coverage-row"><span>'+html(metricInfo[key][1])+'</span>'+(current.seen.includes(key)?'<strong>Encontrado</strong>':'<em>Não encontrado no arquivo</em>')+'</div>').join('')+'<p class="coverage-note">Arquivos JSON analisados: '+current.scanned+' · Entradas ignoradas: '+current.skipped+' · Erros: '+current.parseErrors+'. Compartilhamentos em mensagens privadas não são lidos.</p>';
+ $('dashboardMetrics').innerHTML=keys.length?keys.map(key=>{const [ico]=metricInfo[key], [name,desc]=metric(key);const value=s.counts[key];const untimed=undated[key]||0;return '<article class="metric-tile"><div class="metric-icon">'+storyIcon({metricKey:key,title:name})+'</div><div class="metric-value">'+(untimed&&!value?'—':fmt(value))+'</div><div class="metric-name">'+html(name)+'</div><div class="metric-desc">'+(untimed?l('undated','Sem data')+': '+fmt(untimed)+l('count',' registros. '):'')+html(desc)+'</div></article>';}).join(''):'<p>Nenhuma categoria compatível encontrada.</p>';
+ $('dataCoverage').innerHTML=Object.keys(metricInfo).map(key=>'<div class="coverage-row"><span>'+html(metric(key)[0])+'</span>'+(current.seen.includes(key)?'<strong>'+l('seen','Encontrado')+'</strong>':'<em>'+l('notSeen','Não encontrado no arquivo')+'</em>')+'</div>').join('')+'<p class="coverage-note">'+l('dataScanned','Arquivos JSON analisados: ')+current.scanned+l('ignored',' · Entradas ignoradas: ')+current.skipped+l('errorCount',' · Erros: ')+current.parseErrors+'.'+l('private',' Compartilhamentos em mensagens privadas não são lidos.')+'</p>';
  makeCharts(s);
  renderComments();
 }
 function openDashboard(){if(!current)return;closeRecap();renderDashboard();$('dashboardOverlay').classList.remove('hidden');document.body.style.overflow='hidden';}
 function closeDashboard(){$('dashboardOverlay').classList.add('hidden');document.body.style.overflow='';}
 function loadResult(data){
- if(!data||!opts[data.platform]){error('O arquivo não pôde ser identificado.');return;}
+ if(!data||!opts[data.platform]){error(l('errorUnknown','O arquivo não pôde ser identificado.'));return;}
  if(data.platform!==platform)selectPlatform(data.platform);
  current=data;if(!data.demo)resultsByPlatform.set(platform,data);updateResume();const years=[...new Set(data.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].filter(y=>y>=2005&&y<=2100).sort((a,b)=>b-a);
  if(!years.length){year=new Date().getUTCFullYear();$('yearSelect').innerHTML='<option>'+year+'</option>';$('processing').classList.add('hidden');$('errorBox').classList.add('hidden');openDashboard();return;}
@@ -185,16 +211,16 @@ function loadResult(data){
 function error(message){$('processing').classList.add('hidden');$('errorBox').textContent=message;$('errorBox').classList.remove('hidden');}
 function analyzeFiles(files){
  if(!files?.length)return;
- if(!window.Worker){error('Seu navegador não suporta processamento de arquivos em segundo plano.');return;}
+ if(!window.Worker){error(l('workerUnsupported','Seu navegador não suporta processamento de arquivos em segundo plano.'));return;}
  const requestedPlatform=platform;const w=new Worker('./worker.js');let completed=false;
- $('errorBox').classList.add('hidden');$('processing').classList.remove('hidden');$('processingFill').style.width='1%';$('processingTitle').textContent='Lendo seus dados de '+opts[platform].label+'...';$('processingDetail').textContent='Os arquivos estão sendo analisados neste aparelho.';
+ $('errorBox').classList.add('hidden');$('processing').classList.remove('hidden');$('processingFill').style.width='1%';$('processingTitle').textContent=l('read','Lendo seus dados de ')+opts[platform].label+'...';$('processingDetail').textContent=l('local','Os arquivos estão sendo analisados neste aparelho.');
  w.onmessage=e=>{const v=e.data;
- if(v.kind==='progress'){$('processingFill').style.width=Math.round(4+95*v.current/Math.max(1,v.total))+'%';$('processingDetail').textContent=`Arquivo ${v.current+1} de ${v.total}: ${v.name.split('/').pop()}`;}
+ if(v.kind==='progress'){$('processingFill').style.width=Math.round(4+95*v.current/Math.max(1,v.total))+'%';$('processingDetail').textContent=`${language()==='en'?'File':language()==='es'?'Archivo':'Arquivo'} ${v.current+1} ${language()==='en'?'of':'de'} ${v.total}: ${v.name.split('/').pop()}`;}
  if(v.kind==='warning')warning.push(v.message);
  if(v.kind==='error'){completed=true;error(v.message);w.terminate();}
- if(v.kind==='result'){completed=true;w.terminate();$('processingFill').style.width='100%';if(requestedPlatform!==platform){resultsByPlatform.set(requestedPlatform,v.data);error('A análise da outra rede terminou. Selecione '+opts[requestedPlatform].label+' para ver seus dados.');}else loadResult(v.data);}
+ if(v.kind==='result'){completed=true;w.terminate();$('processingFill').style.width='100%';if(requestedPlatform!==platform){resultsByPlatform.set(requestedPlatform,v.data);error(l('readyAnalysis','A análise da outra rede terminou. Selecione ')+opts[requestedPlatform].label+l('readyView',' para ver seus dados.'));}else loadResult(v.data);}
  };
- w.onerror=ev=>{if(!completed){error('Erro ao processar o arquivo. Tente exportar somente as categorias de atividade.');w.terminate();}};
+ w.onerror=ev=>{if(!completed){error(l('processError','Erro ao processar o arquivo. Tente exportar somente as categorias de atividade.'));w.terminate();}};
  w.postMessage({action:'analyze',platform,files:[...files]});
 }
 function demo(fromHome=false){
@@ -208,23 +234,20 @@ function demo(fromHome=false){
  loadResult({events,seen:types,scanned:0,skipped:0,parseErrors:0,platform,demo:true});
 }
 function cardPNG(){
- const data=stories[index],canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const ctx=canvas.getContext('2d');
- const g=ctx.createLinearGradient(0,0,1080,1920);g.addColorStop(0,data.color[0]);g.addColorStop(1,data.color[1]);ctx.fillStyle=g;ctx.fillRect(0,0,1080,1920);
- ctx.strokeStyle='#ffffff38';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(300,510,460,680,-.35,0,Math.PI*2);ctx.stroke();
- const officialLogo=document.querySelector('.brand-logo');
- if(officialLogo?.complete && officialLogo.naturalWidth){ctx.drawImage(officialLogo,70,70,480,110);}
- else{ctx.save();ctx.fillStyle='#ffffff';ctx.font='900 70px Arial';ctx.fillText('REEECAP',75,145);ctx.restore();}
- if(current?.demo){ctx.save();ctx.fillStyle='#ffffff';ctx.font='bold 29px Arial';ctx.textAlign='right';ctx.fillText('DEMONSTRAÇÃO FICTÍCIA',1000,145);ctx.restore();}
- ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.font='bold 65px Arial';ctx.fillText(data.eyebrow,540,660);
- ctx.font='bold 160px Arial';const chunks=String(data.value||'').match(/.{1,13}/g)||[];chunks.forEach((ch,i)=>ctx.fillText(ch,540,880+170*i));
- ctx.font='bold 72px Arial';const lines=wrapText(ctx,data.title,875);lines.forEach((line,i)=>ctx.fillText(line,540,1050+i*85));
- ctx.font='40px Arial';const desc=wrapText(ctx,data.body,890);desc.forEach((line,i)=>ctx.fillText(line,540,1360+i*57));
- ctx.font='bold 38px Arial';ctx.fillText(opts[platform].label+' · '+year,540,1765);
- canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='reeecap-'+platform+'-'+year+'-'+(index+1)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);},'image/png');
+ if(!current||!stories[index])return;
+ // One art pipeline for preview/video/PNG. Avoid divergent image exports with unstyled metrics.
+ const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
+ const ctx=canvas.getContext('2d',{alpha:false}),snap=window.REEECAP_VIDEO_SNAPSHOT?.();
+ if(!ctx||!snap?.stories?.[index]||typeof window.REEECAP_DRAW_STORY_FRAME!=='function'){
+  error(l('imageError','Não foi possível preparar a imagem neste navegador.'));return;
+ }
+ const logo=document.querySelector('.brand-logo');
+ window.REEECAP_DRAW_STORY_FRAME(ctx,snap,snap.stories[index],.99,index,snap.stories.length,logo,2000);
+ canvas.toBlob(blob=>{if(!blob){error(l('imageError','Não foi possível salvar a imagem.'));return;}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`reeecap-${platform}-${year}-${index+1}.png`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);},'image/png');
 }
 function wrapText(ctx,text,max){const words=String(text).split(/\s+/),out=[];let line='';for(const word of words){if(ctx.measureText((line+' '+word).trim()).width>max&&line){out.push(line);line=word;}else line=(line+' '+word).trim();}if(line)out.push(line);return out.slice(0,4);}
 function exportSummary(){
- const s=buildStats(),lines=[`REEECAP — ${opts[platform].label} — ${year}`,'DADOS EXTRAÍDOS LOCALMENTE','',...activeTypes().map(k=>`${metricInfo[k][1]}: ${s.counts[k]}`),'',`${s.activeDays} dias com atividade registrada.`,'Categorias não encontradas não equivalem a zero.'];
+ const s=buildStats(),lines=[`REEECAP — ${opts[platform].label} — ${year}`,language()==='pt'?'DADOS EXTRAÍDOS LOCALMENTE':language()==='en'?'DATA ANALYZED LOCALLY':'DATOS ANALIZADOS LOCALMENTE','',...activeTypes().map(k=>`${metric(k)[0]}: ${s.counts[k]}`),'',`${s.activeDays} ${{pt:'dias com atividade registrada.',en:'days with recorded activity.',es:'días con actividad registrada.'}[language()]}`,language()==='pt'?'Categorias não encontradas não equivalem a zero.':language()==='en'?'Categories missing from the export do not count as zero.':'Las categorías ausentes no equivalen a cero.'];
  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`reeecap-${platform}-${year}-resumo.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function exportStudioSnapshot(){
@@ -258,11 +281,12 @@ function setupStoryHold(){
  }
 }
 
-window.REEECAP_VIDEO_SNAPSHOT=()=>({platform,year,stories:stories.map(s=>({kind:s.kind,title:s.title,value:s.value||'',body:s.body,eyebrow:s.eyebrow,color:s.color})),demo:!!current?.demo});
+window.REEECAP_VIDEO_SNAPSHOT=()=>({platform,year,stories:stories.map(s=>({kind:s.kind,metricKey:s.metricKey||null,title:s.title,value:s.value||'',body:s.body,eyebrow:s.eyebrow,color:s.color})),demo:!!current?.demo});
 let musicOn=false;
 const ambientMusic=new Audio('./assets/reeecap-original-loop.mp3');ambientMusic.loop=true;ambientMusic.volume=.22;ambientMusic.preload='none';
 function toggleMusic(){musicOn=!musicOn;const b=$('musicToggle');if(b){b.setAttribute('aria-pressed',String(musicOn));b.setAttribute('aria-label',musicOn?'Desativar música':'Ativar música');b.classList.toggle('sound-on',musicOn);}if(musicOn){ambientMusic.play().catch(()=>{musicOn=false;if(b)b.setAttribute('aria-pressed','false');});}else ambientMusic.pause();}
 function init(){
+ document.addEventListener('reeecap:locale',()=>{selectPlatform(platform);if(current){const n=index;buildStories();index=Math.min(n,stories.length-1);if(!$('recapopOverlay').classList.contains('hidden'))renderStory();if(!$('dashboardOverlay').classList.contains('hidden'))renderDashboard();} });
  window.addEventListener('popstate',()=>{if(overlayHistoryOpen){overlayHistoryOpen=false;closeRecap();}});
  document.querySelectorAll('[data-platform]').forEach(el=>el.addEventListener('click',()=>selectPlatform(el.dataset.platform)));
  selectPlatform('instagram');

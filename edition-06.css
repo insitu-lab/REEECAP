@@ -1,0 +1,76 @@
+/* REEECAP Edition 06 — reel composer. Private files never cross the network. */
+.video-dialog{width:min(820px,calc(100vw - 24px));max-height:min(94dvh,1000px);scrollbar-gutter:stable}
+.video-dialog .dialog-content{padding:32px clamp(18px,3.4vw,38px) 28px}
+.video-dialog h2{margin-top:14px}
+.video-layout{display:grid;grid-template-columns:minmax(0,1fr) 195px;gap:28px;align-items:center;margin:24px 0}
+.video-options{min-width:0}
+.video-dialog .video-options .video-field{margin:11px 0 16px}
+.video-dialog .custom-track input[type=file]{width:100%;border:1px dashed #aa8ead;border-radius:10px;padding:9px;color:#fff;font-size:12px}
+.video-dialog .custom-track input:disabled{opacity:.45}
+.video-dialog .custom-track small{font-size:11px;color:#b7a7c0;line-height:1.5}
+.video-dialog .video-field input[type=range]{width:100%;accent-color:#ee9ac5;cursor:pointer}
+.video-preview-panel{display:flex;flex-direction:column;align-items:center;gap:9px;padding:13px;background:#ffffff0c;border:1px solid #ffffff1b;border-radius:16px;align-self:stretch}
+.video-preview-panel>span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#cfc1d9;font-weight:800}
+#videoPreviewCanvas{display:block;width:100%;height:auto;max-height:295px;aspect-ratio:9/16;object-fit:contain;border-radius:9px;box-shadow:0 11px 34px #0006}
+.video-slides-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.video-slides-header strong{font-size:16px;letter-spacing:-.03em}
+.video-slides-header span{font-size:12px;color:#d0bfd6}
+.video-selection-actions{display:flex;gap:12px;margin:8px 0 10px}
+.video-selection-actions button{background:none;color:#f9accb;border:0;font-size:12px;font-weight:700;cursor:pointer;padding:4px 0;text-underline-offset:3px;text-decoration:underline}
+.video-story-select{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:210px;overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.video-dialog .video-story-option{display:flex;align-items:center;gap:10px;background:#ffffff0e;border:1px solid #ffffff18;border-radius:10px;padding:12px 11px;min-width:0;cursor:pointer;transition:border-color .15s,background .15s}
+.video-dialog .video-story-option:has(input:checked){background:#e57db922;border-color:#ef98bf7d}
+.video-dialog .video-story-option input{accent-color:#f2a6cb;flex:0 0 auto;width:18px;height:18px}
+.video-slide-no{font-size:10px;letter-spacing:.05em;color:#c5b3cf;font-weight:850;flex:0 0 auto}
+.video-slide-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.video-dialog .video-start{margin-top:22px}
+.video-dialog .video-subtle{margin-top:16px}
+@media(max-width:610px){.video-layout{grid-template-columns:minmax(0,1fr) 125px;gap:10px;margin:15px 0}.video-preview-panel{padding:7px;min-height:0}.video-preview-panel>span{font-size:9px}.video-dialog .dialog-content{padding:20px 17px 24px}.video-dialog .video-options .video-field{margin:7px 0 11px}.video-dialog .video-field select{min-height:40px;font-size:12px}.video-story-select{grid-template-columns:1fr 1fr;max-height:180px}.video-dialog .video-story-option{padding:9px 7px;gap:6px}.video-slide-name{font-size:11px}}
+@media(max-width:360px){.video-layout{grid-template-columns:1fr}.video-preview-panel{display:none}.video-story-select{grid-template-columns:1fr 1fr}}
+/* Mobile-first: the video preview is a compact horizontal header; all editor controls get full width. */
+@media(max-width:610px){
+ .video-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 20px);scrollbar-gutter:auto}
+ .video-dialog .dialog-content{padding:20px 18px 25px}
+ .video-layout{display:flex;flex-direction:column;align-items:stretch;gap:15px}
+ .video-preview-panel{order:-1;flex-direction:row;justify-content:center;align-items:center;min-height:152px;gap:24px;padding:10px 14px;background:linear-gradient(130deg,#ffffff13,#b84e6915)}
+ .video-preview-panel>span{font-size:11px;letter-spacing:.08em;line-height:1.5;max-width:100px}
+ #videoPreviewCanvas{width:86px;max-height:153px;flex:0 0 auto;border-radius:10px}
+ .video-dialog .video-options .video-field{margin:12px 0 17px}
+ .video-dialog .video-field select{font-size:14px;min-height:46px}
+ .video-dialog .video-check{gap:12px}
+ .video-dialog .video-story-option{padding:11px 9px}
+ .video-dialog .video-story-select{max-height:230px}
+}
+@media(max-width:360px){
+ .video-preview-panel{display:flex}
+ .video-dialog .dialog-content{padding:18px 14px 24px}
+ .video-dialog .video-story-select{grid-template-columns:1fr}
+}
+
+/* Contextual Story motion: meaningful brand actions, never anonymous rectangles. */
+.story-atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.22;mask-image:linear-gradient(to right,transparent 28%,#000 72%);color:#fff}
+.story-atmosphere span{position:absolute;display:block;width:clamp(43px,8vw,100px);aspect-ratio:1;right:7%;top:5%;transform:rotate(-13deg);animation:reeecapStoryFloat 15s ease-in-out infinite alternate;filter:drop-shadow(0 10px 10px #250e3a30)}
+.story-atmosphere svg{width:100%;height:100%;display:block}
+.story-atmosphere span:nth-child(1){right:10%;top:7%;--a:0deg;animation-delay:-1.7s}
+.story-atmosphere span:nth-child(2){right:27%;top:19%;width:58px;--a:20deg;animation-delay:-8.7s}
+.story-atmosphere span:nth-child(3){right:3%;top:32%;width:74px;--a:-25deg;animation-delay:-3s}
+.story-atmosphere span:nth-child(4){right:26%;top:42%;width:86px;--a:14deg;animation-delay:-12.5s}
+.story-atmosphere span:nth-child(5){right:8%;top:56%;width:110px;--a:-13deg;animation-delay:-5s}
+.story-atmosphere span:nth-child(6){right:35%;top:67%;width:62px;--a:16deg;animation-delay:-10s}
+.story-atmosphere span:nth-child(7){right:9%;top:78%;width:95px;--a:-17deg;animation-delay:-1s}
+.story-atmosphere span:nth-child(8){right:39%;top:90%;width:72px;--a:15deg;animation-delay:-9s}
+.story-atmosphere span:nth-child(9){right:-4%;top:91%;width:82px;--a:20deg;animation-delay:-4.2s}
+.story-atmosphere.atmosphere-watched span,.story-atmosphere.atmosphere-posts span,.story-atmosphere.atmosphere-reels span{width:clamp(80px,10vw,135px);height:clamp(100px,13vw,180px);border:2px solid #fff5;border-radius:17px;padding:20px 12px;box-shadow:0 14px 25px #15052728}
+.story-atmosphere.atmosphere-watched span:before,.story-atmosphere.atmosphere-posts span:before,.story-atmosphere.atmosphere-reels span:before{content:'';position:absolute;inset:6px 9px auto;height:6px;border-top:3px dotted #fffc;border-bottom:3px dotted #fffc;opacity:.6}
+.story-atmosphere.atmosphere-stories span{border-radius:50%;padding:7px;border:3px solid #fff8}
+@keyframes reeecapStoryFloat{from{transform:translate3d(5px,22px,0) rotate(calc(var(--a,0deg) - 6deg));opacity:.7}to{transform:translate3d(-25px,-22px,0) rotate(calc(var(--a,0deg) + 10deg));opacity:1}}
+@media(max-width:610px){.story-atmosphere{opacity:.16;mask-image:linear-gradient(to right,transparent 14%,#000 80%)}.story-atmosphere span:nth-child(2n){right:15%}}
+@media(prefers-reduced-motion:reduce){.story-atmosphere span{animation:none!important}}
+/* Keep text sharp throughout transitions, especially during quick Story taps. */
+@keyframes story-reveal{from{opacity:.65;transform:translateY(12px) scale(.995);filter:none}to{opacity:1;transform:none;filter:none}}
+/* Prevent a narrow phone's scrollable platform rail from widening the page itself. */
+@media(max-width:610px){.platform-grid{box-sizing:border-box;width:calc(100% + 34px);max-width:100vw;overflow-x:auto;overflow-y:hidden}}
+@media(max-width:410px){.hero h1{white-space:normal;overflow-wrap:normal;font-size:clamp(34px,10.2vw,43px)!important}}
+@media(min-width:611px) and (max-width:880px){.hero h1{white-space:normal;font-size:clamp(42px,6vw,57px)!important}.hero-right{overflow:hidden;border-radius:16px}}
+@media(min-width:881px) and (max-width:1180px){.hero-right{max-width:100%;overflow:hidden;border-radius:16px}}
+@media(min-width:881px){.hero-right{max-width:100%;overflow:hidden}}

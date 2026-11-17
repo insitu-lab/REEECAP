@@ -48,3 +48,9 @@ Consolidação de decisões expressas na conversa de 16–17/11/2026, das transc
 - ZIP real de ~400 MB, validação dos contadores Instagram (posts vs Reels, duplicações), performance em celulares modestos.
 - Premium na internet, identidade do desenvolvedor configurada, checkout, verificação de assinatura e autorização de pagantes; dependem da infraestrutura Cloudflare e decisões futuras.
 - Verificações em celulares reais, Instagram nativo e Safari de exportação e compartilhamento de arquivos.
+
+## Trabalho incremental após o pedido de entrega única (17/11)
+- `video.js`: o controle de volume agora é aplicado à trilha exportada; se o usuário habilitar música própria sem selecionar arquivo, a gravação é interrompida com aviso ao invés de seguir silenciosamente. Áudio acima de 25 MB é rejeitado antes de começar.
+- `tests/test_big_zip.py`: teste sintético de ZIP não ZIP64 com **419.443.867 bytes** (100 mídias não relevantes e 1 JSON de curtidas); importação passou no Chromium simulado em 390 px, pulando as mídias sem carregar todo o ZIP. **Isso NÃO substitui validação com ZIP real do usuário ou celular físico.**
+- `tests/test_real_browser.py`: testes existentes continuam passando, inclusive importação sintética de 4 redes e um MP4 H.264 de 720×1280.
+- Ainda **não** entregar versão final: prints reais/licenciamento, i18n integral, Cloudflare Access e checkout, conteúdo Premium completo, testes reais dos navegadores e dispositivos e amostras reais das plataformas continuam pendentes.

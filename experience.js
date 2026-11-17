@@ -22,7 +22,7 @@ function apply(){
  }else if(selector==='#downloadVideo'){const svg=el.querySelector('svg');if(svg){el.replaceChildren(svg,document.createTextNode(' '+dict[key]));}}
  }
  $$('.platform-cta').forEach(e=>e.textContent=dict.choose);
- const select=$('#reeecapLanguage');if(select){select.value=lang;select.setAttribute('aria-label',dict.langLabel);}
+ const select=$('#reeecapLanguage');if(select){select.value=lang;select.setAttribute('aria-label',dict.langLabel);const label=document.querySelector('label[for="reeecapLanguage"]');if(label)label.textContent=dict.langLabel;}
  const theme=$('#reeecapTheme');if(theme){theme.setAttribute('aria-label',appearance==='dark'?dict.themeLight:dict.themeDark);theme.title=theme.getAttribute('aria-label');theme.innerHTML=appearance==='dark'?'☀':'☾';}
  const premium=$('#reeecapPremium');if(premium)premium.textContent=dict.premium;
  const caption=$('.guide-screens-caption');if(caption)caption.textContent=dict.stepsNotice;

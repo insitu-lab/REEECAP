@@ -78,15 +78,61 @@
       source: 'https://support.reddithelp.com/hc/en-us/articles/360043048352-How-do-I-request-a-copy-of-my-Reddit-data-and-information'
     }
   };
+  // Accurate navigation text in each language; diagrams remain clearly labelled.
+  const localizedGuides = {
+    en: {
+      instagram:{detail:'Open Instagram on your phone and follow these steps.',screens:[
+        ['Instagram','Profile','Open your profile and tap the ☰ menu'],
+        ['Accounts Center','Your information and permissions','Open Accounts Center and find this option'],
+        ['Export','Export your information','Choose your profile, select only the relevant categories and request JSON'] ]},
+      tiktok:{detail:'Open your TikTok account settings in the app.',screens:[
+        ['TikTok','Profile → ☰','Open Settings and privacy'],
+        ['Account','Download your data','Select Account, then Download your data'],
+        ['Request data','Activity · JSON','Choose activity data and JSON, then request the file']]},
+      youtube:{detail:'Export YouTube activity through Google Takeout.',screens:[
+        ['Google Takeout','Deselect all','Start by deselecting the other products'],
+        ['Choose product','YouTube and YouTube Music','Select the product and include your watch history'],
+        ['Export','Create export','Choose JSON for history where available and download the ZIP']]},
+      reddit:{detail:'Reddit prepares your archive after a data request. This can take up to 30 days.',screens:[
+        ['Reddit','Settings → Data','Sign in to reddit.com/settings/data-request'],
+        ['Request','Choose a date range','Select the date range when that option is available'],
+        ['Inbox','Download ZIP','Follow the link Reddit sends when the export is ready']]}
+    },
+    es: {
+      instagram:{detail:'Abre Instagram en tu móvil y sigue estos pasos.',screens:[
+        ['Instagram','Perfil','Abre tu perfil y el menú ☰'],
+        ['Centro de cuentas','Tu información y permisos','Busca esta opción en el Centro de cuentas'],
+        ['Exportar','Exportar tu información','Elige tu perfil, solo los datos necesarios y solicita JSON']]},
+      tiktok:{detail:'Abre la configuración de tu cuenta de TikTok.',screens:[
+        ['TikTok','Perfil → ☰','Abre Ajustes y privacidad'],
+        ['Cuenta','Descargar tus datos','Entra en Cuenta y selecciona Descargar tus datos'],
+        ['Solicitar datos','Actividad · JSON','Selecciona actividad, formato JSON y solicita el archivo']]},
+      youtube:{detail:'Exporta la actividad de YouTube desde Google Takeout.',screens:[
+        ['Google Takeout','Desmarcar todo','Empieza desmarcando los demás productos'],
+        ['Elegir producto','YouTube y YouTube Music','Selecciona YouTube e incluye el historial de visualizaciones'],
+        ['Exportar','Crear exportación','Elige JSON para el historial si aparece la opción y descarga el ZIP']]},
+      reddit:{detail:'Reddit prepara tu archivo después de solicitar los datos. Puede tardar hasta 30 días.',screens:[
+        ['Reddit','Ajustes → datos','Inicia sesión en reddit.com/settings/data-request'],
+        ['Solicitud','Elige las fechas','Selecciona un intervalo si la opción está disponible'],
+        ['Bandeja de entrada','Descarga el ZIP','Reddit enviará un enlace cuando esté preparado']]}
+    }
+  };
+  const guideUi={
+    pt:{open:'Abrir configurações',disclaimer:'Esquemas ilustrativos dos menus. Os nomes podem variar por versão do aplicativo.',source:'Consultar a ajuda oficial de '},
+    en:{open:'Open settings',disclaimer:'Illustrative diagrams, not real screenshots. Menu names may vary by app version.',source:'See official help for '},
+    es:{open:'Abrir configuración',disclaimer:'Diagramas ilustrativos, no capturas reales. Los menús pueden variar según la versión.',source:'Consultar ayuda oficial de '}
+  };
   function updateExportGuide() {
     const active = $('.platform-card.active')?.dataset.platform || 'instagram';
-    const info = visualGuides[active] || visualGuides.instagram;
+    const lang=window.REEECAP_LANGUAGE?.()||'pt';
+    const info = localizedGuides[lang]?.[active] ? {...visualGuides[active],...localizedGuides[lang][active]} : (visualGuides[active] || visualGuides.instagram);
+    const ui=guideUi[lang]||guideUi.pt;
     const guide = $('#stepOneLine');
     if (guide) guide.textContent = info.detail;
     const label = $('#exportPlatform')?.textContent || 'Instagram';
     const link = $('#guideExportLink');
     const source = $('#exportLink');
-    if (link && source) { link.href = source.href; link.textContent = 'Abrir configurações'; }
+    if (link && source) { link.href = source.href; link.textContent = ui.open; }
     const root = $('#platformWalkthrough');
     if(root){
       root.replaceChildren();
@@ -101,8 +147,8 @@
         const tip=document.createElement('p');tip.textContent=item[2];
         screen.append(head,chip,tip);pages.append(screen);
       });
-      const caption=document.createElement('p');caption.className='guide-screens-caption';caption.textContent='Esquemas ilustrativos dos menus. Os nomes podem variar por versão do aplicativo.';
-      const official=document.createElement('a');official.href=info.source;official.target='_blank';official.rel='noopener noreferrer';official.className='guide-source';official.textContent='Consultar a ajuda oficial de '+label;
+      const caption=document.createElement('p');caption.className='guide-screens-caption';caption.textContent=ui.disclaimer;
+      const official=document.createElement('a');official.href=info.source;official.target='_blank';official.rel='noopener noreferrer';official.className='guide-source';official.textContent=ui.source+label;
       root.append(pages,caption,official);
     }
   }
@@ -154,6 +200,7 @@
     $('#previewStage')?.addEventListener('click', () => $('#demoHero')?.click());
     $('#newAnalysis')?.addEventListener('click',() => {showView('studio');setStep(3);});
     updateExportGuide();
+    document.addEventListener('reeecap:locale',updateExportGuide);
     setStep(1);
     const hash = location.hash;
     if (hash === '#como-funciona' || hash === '#importar') showView('studio', null, false);
