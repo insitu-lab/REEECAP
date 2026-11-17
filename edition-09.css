@@ -1,0 +1,99 @@
+/* REEECAP 3.1 — creator-requested mobile layout & footer repair.
+   Navigation is in normal flow. Cards fit without sideways clipping.
+   Overrides intentionally loaded last; no glowy borders or double selected tabs. */
+body{min-height:100dvh;display:flex;flex-direction:column}
+body>main{flex:1 0 auto;min-width:0}
+.site-footer{position:relative;flex:0 0 auto;margin-top:auto}
+.platform-grid{scrollbar-width:auto;scroll-snap-type:none}
+.platform-card{
+ --card-edge:#37333f;
+ border:1px solid var(--card-edge)!important;
+ background:#1b1923!important;color:#f9f6fa!important;
+ border-radius:14px!important;box-shadow:none!important;
+ outline-offset:3px;transform:none;filter:none;
+ transition:background .18s ease,border-color .18s ease;
+}
+.platform-card.active{border-color:var(--card-edge)!important;box-shadow:none!important}
+.platform-card:hover{transform:none!important;background:#25212c!important;border-color:#72667b!important;box-shadow:none!important}
+.platform-card:focus-visible{outline:3px solid #a65bfc!important;outline-offset:3px}
+.platform-card .platform-no{letter-spacing:.08em;font-size:13px;color:#c2b7cc;opacity:1}
+.platform-card .platform-cta{border-top:0!important;margin-top:17px;padding-top:0!important;letter-spacing:0!important;font-size:15px!important;color:#dfb3f8}
+.platform-card .platform-cta:after{content:'↗';margin-left:12px}
+.platform-card .platform-bottom small{color:#d0c6d5;font-size:15px}
+.platform-card .platform-art-rings{display:none!important}
+body[data-appearance="light"] .platform-card{background:#fff!important;color:#261e2c!important;border-color:#d2c8d9!important}
+body[data-appearance="light"] .platform-card:hover{background:#f3edf6!important;border-color:#957aab!important}
+body[data-appearance="light"] .platform-card .platform-no,body[data-appearance="light"] .platform-card .platform-bottom small{color:#60546a!important}
+body[data-appearance="light"] .platform-card .platform-cta{color:#6720ad!important}
+@media(max-width:699px){
+ body{padding-bottom:0!important}
+ /* One fully readable card per row: no horizontal marquee or partially visible logos. */
+ .platforms-section .platform-grid{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  width:100%!important;overflow:visible!important;
+  margin:25px 0 0!important;padding:0!important;gap:12px!important;
+  scroll-snap-type:none!important;
+ }
+ .platforms-section .platform-card{
+  min-width:0!important;max-width:100%!important;width:100%!important;
+  min-height:0!important;height:auto!important;display:grid!important;
+  grid-template-columns:70px minmax(0,1fr);gap:16px;
+  align-items:center;text-align:left;
+  position:relative;padding:19px 17px!important;overflow:visible!important;
+ }
+ .platforms-section .platform-card .platform-top{position:absolute;top:13px;right:16px}
+ .platforms-section .platform-card .platform-no{font-size:11px!important}
+ .platforms-section .platform-card .platform-art{grid-column:1;grid-row:1;width:70px;height:72px!important;display:grid;place-items:center;margin:0}
+ .platforms-section .platform-card .platform-art-center{width:64px;height:64px}
+ .platforms-section .platform-card .platform-art-center img{height:62px!important;width:62px!important;max-width:100%;object-fit:contain}
+ .platforms-section .platform-card .platform-bottom{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding-right:4px}
+ .platforms-section .platform-card .platform-bottom strong{font-size:clamp(23px,6.6vw,30px)!important;line-height:1.1;letter-spacing:-.045em}
+ .platforms-section .platform-card .platform-bottom small{font-size:clamp(13px,3.65vw,15px)!important;line-height:1.4;margin-top:7px;max-width:100%}
+ .platforms-section .platform-card .platform-cta{font-size:14px!important;margin-top:12px}
+ .platforms-section .platform-card .platform-art-mark{display:none}
+ /* Nav is an ordinary section at the bottom, not a floating obstruction. */
+ .mobile-dock{
+  display:flex!important;position:static!important;inset:auto!important;
+  flex:none;width:calc(100% - 36px);max-width:800px;
+  margin:18px auto 0!important;padding:10px 0!important;
+  justify-content:space-between;gap:6px;min-height:0;
+  z-index:auto!important;
+  border:0!important;border-top:1px solid #43394d!important;
+  border-bottom:1px solid #43394d!important;border-radius:0!important;
+  background:transparent!important;backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;box-shadow:none!important;
+ }
+ .mobile-dock a,.mobile-dock a.is-active{
+  flex:1;min-width:0;max-width:none;min-height:56px;
+  background:transparent!important;border-radius:0!important;
+  padding:8px 5px!important;text-align:center;
+  font-size:13px!important;font-weight:700;
+  color:#a89bac;letter-spacing:0!important;
+ }
+ .mobile-dock a.is-active{color:#f5ecff!important;text-decoration:underline;text-underline-offset:6px;text-decoration-color:#b764e8}
+ .mobile-dock a svg{width:21px!important;height:21px!important}
+ .site-footer{padding:29px 0 36px!important;display:grid!important;gap:14px!important;border-top:0!important}
+ .site-footer p,.site-footer span,.site-footer small{font-size:14px!important;line-height:1.55!important}
+ body[data-appearance="light"] .mobile-dock{background:transparent!important;border-color:#c9bcd4!important}
+ body[data-appearance="light"] .mobile-dock a{color:#655a6c!important}
+ body[data-appearance="light"] .mobile-dock a.is-active{background:transparent!important;color:#4d226d!important}
+}
+@media(max-width:359px){
+ .platforms-section .platform-card{grid-template-columns:56px minmax(0,1fr);gap:12px;padding:16px 13px!important}
+ .platforms-section .platform-card .platform-art{width:56px;height:62px!important}
+ .platforms-section .platform-card .platform-art-center{width:54px;height:54px}
+ .platforms-section .platform-card .platform-art-center img{width:52px!important;height:52px!important}
+ .platforms-section .platform-card .platform-bottom strong{font-size:22px!important}
+}
+@media(max-width:699px){
+ .site-footer{min-width:0;grid-template-columns:minmax(0,1fr)!important}
+ .site-footer>span{white-space:normal!important;overflow-wrap:anywhere;min-width:0}
+ .site-footer p,.site-footer small{overflow-wrap:anywhere;min-width:0}
+}
+/* REEECAP owns its accent; changing platforms must not recolor the homepage cyan. */
+.hero h1 em{color:#f54db3!important;text-shadow:none!important}
+.hero-actions .primary-btn{background:#922bd6!important;color:#fff!important;box-shadow:none!important}
+.hero-actions .primary-btn:hover{background:#ac40ed!important;color:#fff!important}
+.hero-trust a{color:#e6a8f7!important}
+body[data-appearance="light"] .hero h1 em{color:#9b217d!important}
+body[data-appearance="light"] .hero-actions .primary-btn{background:#7023aa!important;color:#fff!important}

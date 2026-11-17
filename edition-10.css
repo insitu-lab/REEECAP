@@ -1,0 +1,28 @@
+/* REEECAP Motion 04: shared canvas, quiet editorial typography, no generic repeated icons */
+.story-visual .story-content{isolation:isolate;overflow:hidden}
+.story-motion-canvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.story-content .story-main{position:relative;z-index:1}
+.story-content.kind-number:has(.story-motion-canvas) .story-atmosphere,
+.story-content.kind-number:has(.story-motion-canvas) .story-comment-roll{display:none!important}
+.story-content.kind-days:not(.is-revealed) .story-headline{opacity:0;transition:opacity .65s ease}
+.story-content.kind-days.is-revealed .story-headline{opacity:1;transition:opacity .65s ease}
+#calendarPeel{display:inline-flex;align-items:center;gap:8px;margin-top:20px;position:relative;z-index:15;padding:13px 18px;border:1px solid #ffffff6e;border-radius:8px;color:#fff;background:#1b103d60;font-size:14px;font-weight:750;cursor:pointer;pointer-events:auto}
+#addReelsBtn{display:none}
+#addReelsBtn.is-visible{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.story-bottom-actions{display:flex;flex-wrap:wrap;justify-content:center}
+.story-bottom-actions button{flex:1 1 0;min-width:0}
+.story-bottom-actions #addReelsBtn{flex:1 1 100%;max-width:260px;border-color:rgba(255,255,255,.5);background:rgba(14,9,29,.4);font-weight:750}
+.story-bottom-actions #addReelsBtn:focus-visible,#calendarPeel:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.reel-picker-note{font-size:13px!important;line-height:1.45;color:#dcd0e7}
+.reel-picker-note strong{color:#fff}
+.story-content.kind-days{min-height:100%}
+@media(prefers-reduced-motion:reduce){.story-motion-canvas{opacity:.7}}
+@media(max-width:610px){#calendarPeel{padding:9px 11px;font-size:12px;margin-top:10px}.story-bottom-actions #addReelsBtn{font-size:11px!important}}
+
+/* Videos in the filmstrip are actual media, not decorative line icons. */
+.story-motion-canvas{z-index:2;opacity:.56}
+.story-visual .story-content{position:relative;z-index:3;background:transparent!important}
+.story-visual .story-content .story-main{z-index:4}
+
+/* Edit background videos in the composer; prevent a fourth bottom button from crushing layout on small phones. */
+#addReelsBtn,#addReelsBtn.is-visible{display:none!important}

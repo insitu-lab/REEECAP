@@ -62,7 +62,7 @@ As imagens são capturas do renderizador de vídeo, com **dados sintéticos** us
 
 > **Versão de testes:** ainda há limitações que impedem anunciar o produto como concluído.
 
-**[Baixar REEECAP 3.0 — site público (.zip)](downloads/REEECAP-3.0-publico.zip)**
+**[Baixar REEECAP 4.0 — vídeos reais no rolo (.zip)](downloads/REEECAP-4.0-publico.zip)**
 
 O download acima está incluído no repositório e funciona mesmo antes de publicar uma GitHub Release. A instalação é um site estático; não é um aplicativo instalável para Windows. Em futuras versões, os pacotes podem ser publicados na seção **Releases** do GitHub para oferecer histórico e notas de versão.
 
@@ -128,3 +128,8 @@ O código do REEECAP é disponibilizado sob [MIT](LICENSE). O conteúdo de terce
 <div align="center">
   <sub>REEECAP · feito para reviver o que ficou no seu ano, não para coletar suas senhas.</sub>
 </div>
+
+
+### Vídeos reais nos Stories
+
+O rolo de filme carrega automaticamente vídeos gravados de verdade do Mixkit, licenciados para uso comercial. Não são gravações nem Reels do perfil analisado. O editor permite substituí-los por vídeos locais. O carregamento das demonstrações depende da conexão, da disponibilidade dos vídeos externos e da permissão CORS do host; se não houver permissão para composição em canvas, o sistema não simula Reels na exportação. Documentação: [CLIPES_REAIS_E_LICENCAS.md](CLIPES_REAIS_E_LICENCAS.md).

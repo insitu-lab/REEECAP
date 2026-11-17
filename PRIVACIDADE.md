@@ -11,3 +11,8 @@ Se você optar por apoiar via Pix, o pagamento é feito fora do REEECAP e sujeit
 Este software é aberto: qualquer pessoa pode inspecionar os arquivos JavaScript e conferir se existem requisições de rede. **A segurança depende também do local em que o site for publicado**. Consulte sempre o endereço e o código da versão que estiver usando.
 
 Não somos afiliados à Meta, TikTok, Google ou Reddit. Para dúvidas ou correções, abra uma issue no repositório público do projeto, sem anexar arquivos de exportação reais.
+
+
+## Vídeos reais ilustrativos
+
+Para criar o rolo de filme de maneira automática, o REEECAP carrega vídeos reais licenciados hospedados no Mixkit ao abrir uma cena compatível. Essa chamada externa pode informar o seu IP e dados de conexão ao provedor da mídia. Não transmite seu ZIP, seus comentários, suas métricas nem credenciais. Os vídeos são meramente ilustrativos, não pertencem à conta analisada. Se preferir, substitua-os pelos seus próprios vídeos no editor.

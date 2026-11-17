@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 import mimetypes, base64, subprocess
 BASE=Path(__file__).resolve().parent.parent
-SCRIPTS=['edition-03.js','config.js','app.js','atelier.js','video.js','experience.js','locale-full.js']
+SCRIPTS=['edition-03.js','config.js','motion.js','app.js','atelier.js','video.js','experience.js','locale-full.js']
 def inline_html():
  soup=BeautifulSoup((BASE/'index.html').read_text(),'html.parser')
  for node in soup.select('meta[http-equiv="Content-Security-Policy"],script'):node.decompose()
