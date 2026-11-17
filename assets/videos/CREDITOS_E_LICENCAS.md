@@ -1,0 +1,52 @@
+# Créditos e licenças dos vídeos
+
+Este arquivo acompanha os vídeos fornecidos. Se um vídeo CC BY for utilizado numa exportação pública, mantenha os créditos exigidos pela licença.
+
+- **reel_01.mp4** — File:Timelapse 2025 Kinnaur Monsoon.webm
+  - Autor: Dfromhimalayas
+  - Licença: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Timelapse_2025_Kinnaur_Monsoon.webm
+- **reel_02.mp4** — File:မိုးတိမ်ကောင်းကင်.webm
+  - Autor: စာကလေး
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:%E1%80%99%E1%80%AD%E1%80%AF%E1%80%B8%E1%80%90%E1%80%AD%E1%80%99%E1%80%BA%E1%80%80%E1%80%B1%E1%80%AC%E1%80%84%E1%80%BA%E1%80%B8%E1%80%80%E1%80%84%E1%80%BA.webm
+- **reel_03.mp4** — File:Сніг на тлі легкої хмари в небі.webm
+  - Autor: Роман Рябенко
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BD%D1%96%D0%B3_%D0%BD%D0%B0_%D1%82%D0%BB%D1%96_%D0%BB%D0%B5%D0%B3%D0%BA%D0%BE%D1%97_%D1%85%D0%BC%D0%B0%D1%80%D0%B8_%D0%B2_%D0%BD%D0%B5%D0%B1%D1%96.webm
+- **reel_04.mp4** — File:Partial solar eclipse of 29 March 2025 in Tuntorp, Brastad.webm
+  - Autor: W.carter
+  - Licença: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Partial_solar_eclipse_of_29_March_2025_in_Tuntorp,_Brastad.webm
+- **reel_05.mp4** — File:Clouds time lapse.webm
+  - Autor: John Fowler
+  - Licença: CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Clouds_time_lapse.webm
+- **reel_06.mp4** — File:Rain in Sonoma - December 2025 - Sarah Stierch.webm
+  - Autor: Missvain
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:Rain_in_Sonoma_-_December_2025_-_Sarah_Stierch.webm
+- **reel_07.mp4** — File:Rain in Rivne 2.webm
+  - Autor: Ата
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:Rain_in_Rivne_2.webm
+- **reel_08.mp4** — File:Rain in Rivne.webm
+  - Autor: Ата
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:Rain_in_Rivne.webm
+- **reel_09.mp4** — File:Heavy rain in Nanshan District, Shenzhen (20250424).webm
+  - Autor: Fumikas Sagisavas
+  - Licença: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Heavy_rain_in_Nanshan_District,_Shenzhen_(20250424).webm
+- **reel_10.mp4** — File:Freezing rain at night in Shandong, China (20240220).webm
+  - Autor: Franklin Rainier
+  - Licença: CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Freezing_rain_at_night_in_Shandong,_China_(20240220).webm
+- **reel_11.mp4** — File:Wood Chopping.webm
+  - Autor: Fiktube
+  - Licença: CC0 1.0 — http://creativecommons.org/publicdomain/zero/1.0/deed.en
+  - Fonte: https://commons.wikimedia.org/wiki/File:Wood_Chopping.webm
+- **reel_12.mp4** — File:Aerial views of forest in Russia.webm
+  - Autor: Flykit production
+  - Licença: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0
+  - Fonte: https://commons.wikimedia.org/wiki/File:Aerial_views_of_forest_in_Russia.webm
