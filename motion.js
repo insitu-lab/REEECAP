@@ -1,17 +1,15 @@
 /* REEECAP Motion 04: shared 9:16 context artwork for live Story and export.
    Uses real licensed stock footage by default, with optional user media override.
    Stock footage is NOT attributed to the user's Instagram account.
-   Mixkit media is fetched on-demand only when viewing a relevant Story.
+   Bundled real videos are loaded on demand from this site, without third-party requests.
    Comments are ONLY parsed actual records; no fabricated accounts/messages. */
 (()=>{'use strict';
 // Real clips, each with its publisher's free commercial-use stock license.
 // See CLIPES_REAIS_E_LICENCAS.md. No copyrighted Instagram video is scraped.
-const STOCK=[
- {src:'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-1232-large.mp4',page:'https://mixkit.co/free-stock-video/girl-in-neon-sign-1232/'},
- {src:'https://assets.mixkit.co/videos/preview/mixkit-man-dancing-under-changing-lights-1240-large.mp4',page:'https://mixkit.co/free-stock-video/man-dancing-under-changing-lights-1240/'},
- {src:'https://assets.mixkit.co/videos/preview/mixkit-mother-with-her-little-daughter-eating-a-marshmallow-in-nature-39764-large.mp4',page:'https://mixkit.co/free-stock-video/mother-with-her-little-daughter-eating-a-marshmallow-in-nature-39764/'},
- {src:'https://assets.mixkit.co/videos/preview/mixkit-influencers-dancing-in-a-recording-a-tik-tok-video-42315-large.mp4',page:'https://mixkit.co/free-stock-video/influencers-dancing-in-a-recording-a-tik-tok-video-42315/'}
-];
+const STOCK=Array.from({length:12},(_,i)=>({src:`./assets/videos/reel_${String(i+1).padStart(2,'0')}.mp4`,poster:`./assets/videos/posters/reel_${String(i+1).padStart(2,'0')}.webp`,page:'./videos-e-creditos.html'}));
+// First four are deliberately varied: sunset, eclipse, aerial woods and rainy city.
+const FEATURED=[1,3,11,8,0,5,6,10,2,4,7,9];
+let playlistOffset=4;
 const media={clips:[],urls:[],kind:'none',loading:null,lastError:''};
 function notify(){document.dispatchEvent(new CustomEvent('reeecap:clips',{detail:{count:media.clips.length,ready:readyCount(),kind:media.kind,error:media.lastError}}));}
 function clearClips(){for(const v of media.clips){try{v.pause();v.removeAttribute('src');v.load();}catch{}}for(const url of media.urls)URL.revokeObjectURL(url);media.clips=[];media.urls=[];}
@@ -39,24 +37,31 @@ function awaitClip(v,timeout=6500){
 }
 async function loadStock(){
  if(media.kind==='local'&&readyCount())return readyCount();
+ if(media.kind==='embedded'&&readyCount())return readyCount();
  if(media.loading)return media.loading;
- media.kind='stock';media.lastError='';clearClips();
- const videos=STOCK.map((x,i)=>createVideo('./assets/media/clips/clip-'+(i+1)+'.mp4',false));media.clips=videos;
+ media.kind='embedded';media.lastError='';clearClips();playlistOffset=4;
+ // Four decoding streams maximum, suitable for low-memory mobile devices.
+ const videos=FEATURED.slice(0,4).map((id)=>{
+  const v=createVideo(STOCK[id].src,false);
+  v.dataset.clipIndex=String(id);v.loop=false;v.preload='auto';
+  v.addEventListener('ended',()=>{
+   if(media.kind!=='embedded'||!media.clips.includes(v))return;
+   const next=FEATURED[playlistOffset++%FEATURED.length];
+   v.dataset.clipIndex=String(next);v.src=STOCK[next].src;
+   v.load();v.play().catch(()=>{});
+  });
+  return v;
+ });
+ media.clips=videos;
  media.loading=(async()=>{
-  // Start only the first two clips. Avoid large downloads on mobile connections.
-  const checks=await Promise.all(videos.map((v,i)=>i<2?awaitClip(v):Promise.resolve(false)));
-  if(media.kind!=='stock')return readyCount();
+  const checks=await Promise.all(videos.map(v=>awaitClip(v,7200)));
+  if(media.kind!=='embedded')return readyCount();
   if(!checks.some(Boolean)){
-   // Local files absent in developer checkout: use direct licensed sources automatically.
-   // Production release downloads clips into /assets/media/clips/ during CI.
-   clearClips();media.clips=STOCK.map(x=>createVideo(x.src,true));
-   await Promise.all(media.clips.slice(0,2).map(v=>awaitClip(v)));
-   if(!readyCount())await Promise.all(media.clips.slice(2).map(v=>awaitClip(v)));
+   media.lastError='Vídeos locais indisponíveis. Confirme que a pasta assets/videos está incluída na publicação.';
+   notify();return 0;
   }
-  for(const v of media.clips){if(playable(v))v.play().catch(()=>{});}
-  const count=readyCount();
-  if(!count)media.lastError='Clipes externos indisponíveis. É necessário acesso à internet e autorização de vídeo/CORS do servidor.';
-  notify();return count;
+  for(const v of videos){if(playable(v))v.play().catch(()=>{});}
+  notify();return readyCount();
  })().finally(()=>{media.loading=null;});
  return media.loading;
 }
@@ -70,9 +75,11 @@ async function load(files){
  if(!loaded.length){media.lastError='O navegador não conseguiu decodificar os vídeos escolhidos.';notify();throw new Error(media.lastError);}
  loaded.forEach(v=>v.play().catch(()=>{}));notify();return loaded.length;
 }
+function pause(){for(const v of media.clips)try{v.pause();}catch{}}
+function resume(){for(const v of media.clips)if(playable(v))v.play().catch(()=>{});}
 async function ensure(){
  if(media.kind==='local'&&readyCount())return readyCount();
- if(media.kind==='stock'&&readyCount())return readyCount();
+ if(media.kind==='embedded'&&readyCount()){resume();return readyCount();}
  return loadStock();
 }
 function clipAt(i){const clips=media.clips.filter(playable);return clips.length?clips[i%clips.length]:null;}
@@ -83,7 +90,7 @@ function film(c,t){
   c.save();c.fillStyle='rgba(255,255,255,.75)';c.font='600 20px system-ui';
   c.fillText('Aguardando clipes…',340,430);c.restore();return;
  }
- const strips=[{x:-150,y:310,angle:.12},{x:-190,y:1035,angle:-.10}];
+ const strips=[{x:-150,y:205,angle:.105},{x:-190,y:1040,angle:-.09}];
  strips.forEach((strip,row)=>{c.save();c.translate(strip.x,strip.y);c.rotate(strip.angle);const offset=-((t*22+row*160)%165);
   for(let i=0;i<7;i++){const x=i*165+offset;
    c.fillStyle='rgba(17,12,30,.52)';rrect(c,x-12,-18,159,230,9);c.fill();
@@ -93,7 +100,7 @@ function film(c,t){
    else{c.fillStyle='rgba(255,255,255,.7)';c.font='700 12px system-ui';c.fillText('VIDEO',x+25,95); }
    c.restore();
   }c.restore();});
- // Content is meaningful only when user supplied clips; empty slots are visibly unfilled, not fake reels.
+ // All films shown are actual licensed footage, not fabricated personal Reels.
 }
 function paperPlane(c,x,y,r,scale=1){c.save();c.translate(x,y);c.rotate(r);c.scale(scale,scale);c.lineWidth=3;c.lineJoin='round';c.strokeStyle='rgba(255,255,255,.62)';c.beginPath();c.moveTo(-48,0);c.lineTo(58,-30);c.lineTo(8,37);c.lineTo(-6,11);c.closePath();c.moveTo(-6,11);c.lineTo(58,-30);c.stroke();c.restore();}
 function planes(c,t){for(let i=0;i<6;i++){let x=-210+((t*17+i*207)%1160);let y=250+i*142+Math.sin(t*.45+i*1.5)*22;paperPlane(c,x,y,-.06+Math.sin(t*.28+i)*.11,.75+i%3*.22);}}
@@ -150,7 +157,8 @@ function attach(canvas,slide,msGetter){
   ctx.clearRect(0,0,720,1280);draw(ctx,slide,msGetter());task=requestAnimationFrame(paint);};
  task=requestAnimationFrame(paint);
 }
-window.REEECAP_MOTION={draw,attach,load,ensure,revoke,
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else if(media.kind==='embedded')resume();});
+window.REEECAP_MOTION={draw,attach,load,ensure,revoke,pause,resume,
  get clips(){return media.clips;},get count(){return readyCount();},
- get source(){return media.kind;},get error(){return media.lastError;},stock:STOCK.map(s=>s.page)};
+ get source(){return media.kind;},get error(){return media.lastError;},get libraryCount(){return STOCK.length;},stock:STOCK.map(s=>s.page)};
 })();

@@ -62,7 +62,7 @@ As imagens são capturas do renderizador de vídeo, com **dados sintéticos** us
 
 > **Versão de testes:** ainda há limitações que impedem anunciar o produto como concluído.
 
-**[Baixar REEECAP 5.0 — código público (.zip)](downloads/REEECAP-5.0-publico.zip)**
+**[Baixar REEECAP 6.0 — site público com 12 vídeos reais (.zip)](downloads/REEECAP-6.0-publico.zip)**
 
 O download acima está incluído no repositório e funciona mesmo antes de publicar uma GitHub Release. A instalação é um site estático; não é um aplicativo instalável para Windows. Em futuras versões, os pacotes podem ser publicados na seção **Releases** do GitHub para oferecer histórico e notas de versão.
 
@@ -137,3 +137,8 @@ O código do REEECAP é disponibilizado sob [MIT](LICENSE). O conteúdo de terce
 ### Vídeos reais nos Stories
 
 O rolo de filme usa clipes gravados de verdade, que o workflow inclui no site publicado. Não são vídeos do perfil analisado. O ambiente sem mídia local utiliza fallback online. [Origem e licença dos clipes](LICENCAS_MIDIA_5.md).
+
+
+## Vídeos reais incluídos (v6)
+
+O pacote contém 12 MP4 verticais reais em `assets/videos` (total ~5 MB), com créditos em [Vídeos e créditos](videos-e-creditos.html) e detalhes em [INTEGRACAO_VIDEOS_V6.md](INTEGRACAO_VIDEOS_V6.md). A filmagem de demonstração não corresponde aos vídeos do usuário. O filme é renderizado localmente e pode integrar a exportação.
