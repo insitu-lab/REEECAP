@@ -142,8 +142,15 @@ function renderStory(){
  // em dispositivos móveis, especialmente durante a transição entre fundos.
  const shell=document.querySelector('.recapop-shell');
  if(shell){shell.style.zIndex='2';shell.style.backgroundColor='transparent';}
- $('storyVisual').innerHTML='<canvas class="story-motion-canvas" id="storyMotionCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
- window.REEECAP_MOTION?.attach($('storyMotionCanvas'),s,()=>elapsed+calendarPeelBonus);
+ window.REEECAP_INTRO?.stop();
+ if(s.kind==='intro'&&['instagram','tiktok'].includes(platform)){
+  window.REEECAP_MOTION?.stop?.();
+  $('storyVisual').innerHTML='<canvas class="story-intro-canvas" id="storyIntroCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
+  window.REEECAP_INTRO?.attach($('storyIntroCanvas'),s,()=>elapsed,platform,year);
+ }else{
+  $('storyVisual').innerHTML='<canvas class="story-motion-canvas" id="storyMotionCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
+  window.REEECAP_MOTION?.attach($('storyMotionCanvas'),s,()=>elapsed+calendarPeelBonus);
+ }
  if(['following','followers'].includes(s.metricKey)){const number=$('storyVisual').querySelector('.story-number'),target=Number(String(s.value||'').replace(/\D/g,''));if(number&&target>0){const at=performance.now(),originalIndex=index;const animate=()=>{if(index!==originalIndex||!number.isConnected)return;const x=Math.min(1,(performance.now()-at)/1550),e=1-Math.pow(1-x,4);number.textContent=fmt(Math.round(e*target));if(x<1)requestAnimationFrame(animate);};animate();}}
  $('addReelsBtn')?.classList.remove('is-visible'); // media source editing stays in Video Studio, not over Story controls
  if(s.kind==='days'){s.peelSteps=0;s.manualProgress=0;$('calendarPeel')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();s.peelSteps++;s.manualProgress=Math.min(1,(Math.pow(2,s.peelSteps)-1)/Math.max(1,s.activeDays));calendarPeelBonus=Math.round(s.manualProgress*9000);if(s.manualProgress>=.99)$('storyVisual')?.querySelector('.kind-days')?.classList.add('is-revealed');});}
@@ -166,14 +173,20 @@ function renderStory(){
  elapsed=0;
 }
 let calendarPeelBonus=0;
-function storyDuration(slide){return slide?.kind==='days'?10500:slide?.metricKey==='comments'?11500:stepMs;}
+function storyDuration(slide){return slide?.kind==='intro'&&['instagram','tiktok'].includes(platform)?10000:slide?.kind==='days'?10500:slide?.metricKey==='comments'?11500:stepMs;}
 function stopClock(){clearInterval(tickId);tickId=null;}
 const pauseSvg='<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
 const playSvg='<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M8 4 20 12 8 20z"/></svg>';
 function startClock(){stopClock();playing=true;$('pauseStory').innerHTML=pauseSvg;tickId=setInterval(()=>{elapsed+=90;const bars=$('storyProgress').querySelectorAll('span i');const duration=storyDuration(stories[index]);if(bars[index])bars[index].style.width=Math.min(100,elapsed/duration*100)+'%';if(stories[index]?.kind==='days'&&elapsed+calendarPeelBonus>=7600)$('storyVisual')?.querySelector('.kind-days')?.classList.add('is-revealed');if(elapsed>=duration){if(index>=stories.length-1){playing=false;stopClock();$('pauseStory').innerHTML=playSvg;}else goStory(index+1);}},90);}
 function goStory(i){index=Math.min(Math.max(i,0),stories.length-1);calendarPeelBonus=0;renderStory();if(playing)startClock();}
-function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;calendarPeelBonus=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';if(!overlayHistoryOpen){try{history.pushState({reeecapOverlay:true},'',location.pathname+location.search+'#recap');overlayHistoryOpen=true;}catch{overlayHistoryOpen=false;}}startClock();}
-function closeRecap(){window.REEECAP_MOTION?.stop?.();window.REEECAP_MOTION?.pause?.();ambientMusic.pause();musicOn=false;const m=$('musicToggle');if(m){m.setAttribute('aria-pressed','false');m.classList.remove('sound-on');}clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(current?.demo&&resultsByPlatform.has(platform)){current=resultsByPlatform.get(platform);const years=[...new Set(current.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].sort((a,b)=>b-a);year=years[0]||new Date().getUTCFullYear();}updateResume();if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
+function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;calendarPeelBonus=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';if(!overlayHistoryOpen){try{history.pushState({reeecapOverlay:true},'',location.pathname+location.search+'#recap');overlayHistoryOpen=true;}catch{overlayHistoryOpen=false;}}startClock();
+ if(!window.REEECAP_MUSIC_FILE&&['instagram','tiktok'].includes(platform)){
+  const uri=window.REEECAP_MUSIC5?.src(platform);
+  if(uri){ambientMusic.src=uri;ambientMusic.currentTime=0;
+   ambientMusic.play().then(()=>{musicOn=true;const btn=$('musicToggle');btn?.setAttribute('aria-pressed','true');btn?.classList.add('sound-on');}).catch(()=>{musicOn=false;const btn=$('musicToggle');btn?.setAttribute('aria-pressed','false');btn?.classList.remove('sound-on');});}
+ }
+}
+function closeRecap(){window.REEECAP_INTRO?.stop?.();window.REEECAP_MOTION?.stop?.();window.REEECAP_MOTION?.pause?.();ambientMusic.pause();musicOn=false;const m=$('musicToggle');if(m){m.setAttribute('aria-pressed','false');m.classList.remove('sound-on');}clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(current?.demo&&resultsByPlatform.has(platform)){current=resultsByPlatform.get(platform);const years=[...new Set(current.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].sort((a,b)=>b-a);year=years[0]||new Date().getUTCFullYear();}updateResume();if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
 function makeCharts(s){
  const max=Math.max(1,...s.months);const names=Array.from({length:12},(_,i)=>new Date(Date.UTC(2026,i,1)).toLocaleDateString(dateLocale(),{month:'short',timeZone:'UTC'}).replace('.',''));
  $('monthChart').innerHTML=s.months.map((v,i)=>'<div class="month-col"><strong>'+fmt(v)+'</strong><div class="month-bar" style="height:'+Math.max(2,v/max*170)+'px"></div><span>'+names[i]+'</span></div>').join('');

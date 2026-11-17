@@ -1,11 +1,11 @@
 /* REEECAP PWA — only same-origin public app files are cached.
    Social-data ZIPs are never sent to the worker or stored. */
-const VERSION='reeecap-shell-v6.1';
+const VERSION='reeecap-shell-v6.2';
 const STATIC=[
  './','./index.html','./manifest.webmanifest',
  './style.css','./atelier.css','./edition-02.css','./edition-03.css','./edition-04.css','./edition-05.css','./experience.css','./edition-06.css','./edition-07.css','./edition-08.css','./edition-09.css','./edition-10.css','./edition-11.css','./edition-12.css',
- './app.js','./atelier.js','./video.js','./motion.js','./config.js','./experience.js','./locale-full.js','./tutorial5.js','./music5.js','./edition-03.js','./worker.js',
- './assets/reeecap-logo-3.png','./assets/reeecap-logo-darktext.png','./assets/insitu-lab.png','./assets/reeecap-hero.webp',
+ './app.js','./atelier.js','./video.js','./motion.js','./intro-6.2.js','./intro-6.2.css','./config.js','./experience.js','./locale-full.js','./tutorial5.js','./music5.js','./edition-03.js','./worker.js',
+ './assets/media/music/reeecap-instagram.mp3','./assets/media/music/reeecap-tiktok.mp3','./assets/reeecap-logo-3.png','./assets/reeecap-logo-darktext.png','./assets/insitu-lab.png','./assets/reeecap-hero.webp',
  './assets/brands/instagram.svg','./assets/brands/tiktok.svg','./assets/brands/youtube.svg','./assets/brands/spotify.svg','./assets/brands/facebook.svg','./assets/brands/reddit.svg'
 ];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{
