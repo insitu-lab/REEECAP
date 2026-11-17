@@ -6,7 +6,7 @@
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#080914" name="theme-color"/>
 <meta content="A sua vida digital em retrospectivas imersivas. Instagram, TikTok, YouTube e Reddit. 100% local, gratuito, código aberto." name="description"/>
-<meta content="default-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" http-equiv="Content-Security-Policy"/>
+<meta content="default-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" http-equiv="Content-Security-Policy"/>
 <meta content="no-referrer" name="referrer"/>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link href="./assets/favicon.svg" rel="icon" type="image/svg+xml"/>
@@ -14,12 +14,12 @@
 <link href="./atelier.css" rel="stylesheet"/>
 <link href="./edition-02.css" rel="stylesheet"/>
 <title>REEECAP — recap everything.</title>
-<link href="./edition-03.css" rel="stylesheet"/><link href="./edition-04.css" rel="stylesheet"/></head>
+<link href="./edition-03.css" rel="stylesheet"/><link href="./edition-04.css" rel="stylesheet"/><link href="./edition-05.css" rel="stylesheet"/></head>
 <body data-view="home">
 <div aria-hidden="true" class="ambient ambient-a"></div><div aria-hidden="true" class="ambient ambient-b"></div>
 <header class="site-header wrap">
 <a aria-label="REEECAP, início" class="brand" data-view-link="home" href="#inicio"><img alt="" class="brand-logo" height="61" src="./assets/reeecap-logo-3.png" width="265"/></a>
-<nav aria-label="Navegação principal" class="header-actions"><a aria-current="page" class="nav-link is-active" data-view-link="home" href="#plataformas">Explorar</a><a class="nav-link" data-view-link="studio" href="#como-funciona">Criar recap</a><a class="nav-link" data-view-link="about" href="#privacidade">Sobre &amp; privacidade</a><a class="header-support" data-view-link="about" href="#apoie">Apoiar </a></nav>
+<nav aria-label="Navegação principal" class="header-actions"><a aria-current="page" class="nav-link is-active" data-view-link="home" href="#plataformas">Explorar</a><a class="nav-link" data-view-link="home" href="#plataformas">Criar recap</a><a class="nav-link" data-view-link="about" href="#privacidade">Sobre &amp; privacidade</a><a class="header-support" data-view-link="about" href="#apoie">Apoiar </a></nav>
 </header>
 <main>
 <section aria-labelledby="hero-title" class="hero wrap" id="inicio">
@@ -35,7 +35,7 @@
 <div class="hero-left">
 <h1 id="hero-title">O seu ano na internet.<br/><em>Em retrospectiva.</em></h1>
 <p class="hero-sub">Veja o que você curtiu, salvou, assistiu e publicou. Importe seus dados e descubra o que ficou registrado sobre o seu ano.</p>
-<div class="hero-actions"><a class="primary-btn" href="#como-funciona" data-view-link="studio">Criar meu recap </a><button class="ghost-btn" id="demoHero" type="button"><span aria-hidden="true" class="play-disc">▶</span> Ver um exemplo</button></div>
+<div class="hero-actions"><a class="primary-btn" href="#plataformas" data-view-link="home">Criar meu recap </a><button class="ghost-btn" id="demoHero" type="button"><span aria-hidden="true" class="play-disc">▶</span> Ver um exemplo</button></div>
 <div class="hero-trust"><span>Seu arquivo é analisado no próprio navegador. <a data-view-link="about" href="#privacidade">Como funciona a privacidade</a></span></div>
 </div>
 </section>
@@ -65,8 +65,15 @@
 <div class="platform-after"><div><strong>Outros aplicativos</strong><span>Novas redes poderão ser adicionadas ao projeto.</span></div></div>
 <p class="platform-note">Integrações em fase beta. Você não precisa conectar contas nem informar senhas. Todos os resultados dependem das informações disponíveis na exportação.</p>
 </section>
-<div class="studio-heading wrap"><div><h1>Criar retrospectiva</h1><p>Escolha os dados, exporte e abra sua retrospectiva.</p></div><button class="studio-back" id="studioBack" type="button"><span aria-hidden="true">←</span><span>Escolher outra rede</span></button></div>
+<div class="studio-heading wrap"><div><h1>Criar retrospectiva</h1><p>Escolha os dados, exporte e abra sua retrospectiva.</p></div><button class="studio-back" id="studioBack" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 5-7 7 7 7"/></svg><span>Escolher outra rede</span></button></div>
 <div class="resume-banner wrap"><button id="resumeRecap" class="resume-recap" type="button" hidden>Continuar minha retrospectiva</button></div>
+<section id="readySection" class="recap-ready wrap" aria-label="Sua retrospectiva" hidden>
+ <img src="./assets/reeecap-c-official.png" alt="" class="ready-mark"/>
+ <span class="ready-eyebrow" id="readyPlatform">Retrospectiva pronta</span>
+ <h2>Sua retrospectiva está pronta.</h2>
+ <p>Seus dados continuam nesta aba. Você pode assistir de novo, explorar as estatísticas ou escolher outro arquivo.</p>
+ <div class="ready-actions"><button id="playSavedRecap" class="ready-primary" type="button">Assistir novamente</button><button id="readyViewStats" type="button">Ver todos os dados</button><button id="readyNewZip" type="button">Importar outro arquivo</button></div>
+</section>
 <div class="studio-layout wrap"><section class="steps-section" id="como-funciona">
 <div class="section-lead"><span class="section-kicker">PASSO A PASSO</span><h2>Como exportar seus dados.</h2><p>Cada plataforma tem suas próprias instruções. Escolha somente os dados necessários.</p></div>
 <div aria-label="Etapas do REEECAP" class="steps-grid" role="tablist">
@@ -83,7 +90,7 @@
 <div class="do-not-export"><div><strong>Não selecione:</strong> <span id="notExport">Mensagens, contatos, informações de segurança, localização e mídias completas.</span> Essas informações não são necessárias para uma retrospectiva pública. <strong id="formatAdvice">Formato: JSON, período: todo o período.</strong> Assim você pode escolher o ano dentro do site.</div></div>
 <a class="text-link" href="https://accountscenter.instagram.com/info_and_permissions/" id="exportLink" rel="noopener noreferrer" target="_blank">Ajuda oficial de exportação</a>
 <div class="pane-actions"><button class="guide-button primary-guide advance-step" data-next-step="3" type="button">Continuar para importar</button></div></div>
-<div class="step-main-pane" id="stepPane3" role="tabpanel"><div class="step-overline">Importação</div><h3>Escolha o arquivo que recebeu.</h3><p>Assim que o ZIP ou JSON estiver disponível, selecione-o no painel ao lado. Só os registros de atividades serão lidos.</p><p class="step-soft">Pode ser um arquivo grande. Dependendo do celular, a análise pode exigir memória livre.</p><button class="guide-button primary-guide" id="focusUpload" type="button">Selecionar arquivo</button></div>
+<div class="step-main-pane" id="stepPane3" role="tabpanel"><div class="step-overline">Importação</div><h3>Seu arquivo, por favor.</h3><p>Use o botão no painel ao lado para selecionar o ZIP ou JSON exportado. Não é necessário enviar o arquivo a nenhum servidor.</p><p class="step-soft">A análise pode demorar um pouco se o arquivo for muito grande.</p></div>
 </section>
 <section class="import-section" id="importar">
 <div class="wrap import-wrap"><div class="section-lead center"><h2>Importar arquivo</h2><p>Importe os dados do <strong id="importPlatform">Instagram</strong>. A análise acontece no seu aparelho.</p></div>
@@ -94,7 +101,7 @@
 </div>
 <div aria-live="polite" class="processing hidden" id="processing" role="status"><div class="loading-spinner"></div><div class="processing-text"><strong id="processingTitle">Lendo seus dados...</strong><span id="processingDetail">Lendo os registros disponíveis.</span></div><div class="processing-bar"><div id="processingFill"></div></div></div>
 <div class="notice error hidden" id="errorBox" role="alert"></div>
-<div class="demo-inline"><span>Quer testar antes?</span><button id="demoInline" type="button">Abrir demonstração ↗</button></div>
+<div class="demo-inline"><span>Quer testar antes?</span><button id="demoInline" type="button">Ver demonstração</button></div>
 </div>
 </section></div>
 <section class="features-section wrap"><div class="section-lead"><h2>Seu ano tinha<br/><span class="serif-italic">personalidade.</span></h2><p>Os números são só o começo. Cada dado encontrado vira uma pequena história que merece ser vista. Você escolhe o que compartilhar.</p></div>
@@ -111,10 +118,10 @@
 <footer class="site-footer wrap"><div aria-label="REEECAP" class="brand" role="img"><img alt="" class="brand-logo" height="61" src="./assets/reeecap-logo-3.png" width="265"/></div><p>Projeto independente, não afiliado, patrocinado ou endossado pela Meta, TikTok, Google ou Reddit. Marcas pertencem aos titulares.</p><span>© 2026 Insitu Lab · Todos os direitos reservados.</span><small>Código aberto sob licença MIT.</small></footer>
 <div aria-label="Sua retrospectiva" aria-modal="true" class="recapop-overlay hidden" id="recapopOverlay" role="dialog">
 <div class="story-backdrop" id="storyBackdrop"></div><div class="story-backdrop story-backdrop-next" id="storyBackdropNext"></div>
-<div class="recapop-shell"><div class="story-progress" id="storyProgress"></div><div class="story-header"><span aria-label="REEECAP" class="story-logo" role="img"><img alt="" class="brand-logo" height="61" src="./assets/reeecap-logo-3.png" width="265"/></span><div class="story-controls"><button aria-label="Voltar ao Story anterior" id="backStory" type="button">←</button><button aria-label="Pausar ou continuar a história" id="pauseStory" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button><button aria-label="Fechar retrospectiva" id="closeStory" type="button">✕</button></div></div>
+<div class="recapop-shell"><div class="story-progress" id="storyProgress"></div><div class="story-header"><span aria-label="REEECAP" class="story-logo" role="img"><img alt="" class="brand-logo" height="61" src="./assets/reeecap-logo-3.png" width="265"/></span><div class="story-controls"><button aria-label="Voltar ao Story anterior" id="backStory" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 5-7 7 7 7"/></svg></button><button aria-label="Ativar música" aria-pressed="false" id="musicToggle" type="button"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17V5l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button><button aria-label="Pausar ou continuar a história" id="pauseStory" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button><button aria-label="Fechar retrospectiva" id="closeStory" type="button">✕</button></div></div>
 <div aria-live="polite" class="story-visual" id="storyVisual"></div>
 <div class="story-nav-zones"><button aria-label="Voltar história" id="prevStory" type="button"></button><button aria-label="Próxima história" id="nextStory" type="button"></button></div>
-<div class="story-bottom"><span id="storyCounter" class="visually-hidden" aria-live="off">Story 1</span><div class="story-bottom-actions"><button id="downloadCard" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3h16v-3"/></svg> Baixar imagem</button><button id="openDashboard" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 11h16M4 17h16"/></svg> Ver meus dados</button></div></div>
+<div class="story-bottom"><span id="storyCounter" class="visually-hidden" aria-live="off">Story 1</span><div class="story-bottom-actions"><button id="downloadCard" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3h16v-3"/></svg> Imagem</button><button id="downloadVideo" type="button" aria-label="Baixar vídeo da retrospectiva"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3"/></svg> Vídeo</button><span id="videoStatus" class="video-export-status" aria-live="polite"></span><button id="openDashboard" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 11h16M4 17h16"/></svg> Ver meus dados</button></div></div>
 </div>
 </div>
 <div aria-label="Seu painel de retrospectiva" aria-modal="true" class="dashboard-overlay hidden" id="dashboardOverlay" role="dialog"><div class="dashboard-head wrap"><div aria-label="REEECAP" class="brand" role="img"><img alt="" class="brand-logo" height="61" src="./assets/reeecap-logo-3.png" width="265"/><span class="dashboard-badge">PAINEL COMPLETO</span></div><button id="closeDashboard" type="button">✕ Fechar</button></div><div class="dashboard-body wrap"><div class="dashboard-title"><div><span class="section-kicker">DADOS DETALHADOS / <span id="dashboardYearLabel">2026</span></span><h2>A sua história,<br/>nos detalhes<span>.</span></h2></div><div class="dashboard-tools"><label for="yearSelect">Selecionar ano</label><select id="yearSelect"></select><button id="recapopAgain" type="button">▶ Ver REEECAP</button></div></div><p class="coverage-note" id="coverageNote"></p><div class="dashboard-metrics" id="dashboardMetrics"></div><div class="dashboard-lower"><article class="dashboard-panel"><h3>Atividade ao longo do ano</h3><p>Registros com data encontrados no arquivo.</p><div class="month-chart" id="monthChart"></div></article><article class="dashboard-panel"><h3>Seu relógio de atividade</h3><p>Horários de ações registradas (não é tempo de tela).</p><div class="hour-chart" id="hourChart"></div></article></div><div class="dashboard-lower"><article class="dashboard-panel"><h3>Contas com que você mais interagiu</h3><p>Somente curtidas e salvos com autoria identificável.</p><div id="topAccounts"></div></article><article class="dashboard-panel"><h3>Transparência do arquivo</h3><p>Quais categorias foram encontradas, ignoradas ou não disponibilizadas.</p><div id="dataCoverage"></div></article></div><article class="dashboard-panel comments-panel" id="commentsPanel" hidden>
@@ -125,6 +132,6 @@
 </article>
 <div class="dashboard-footer"><button id="downloadSummary" type="button">↓ Baixar resumo em TXT</button><button id="newAnalysis" type="button">↻ Analisar outros arquivos</button></div></div></div>
 <div aria-label="Apoio via Pix" aria-modal="true" class="modal-backdrop hidden" id="pixModal" role="dialog"><div class="modal"><button aria-label="Fechar" class="modal-close" id="closePix">✕</button><div class="modal-heart">♡</div><h2>Apoie via Pix</h2><p>A contribuição é opcional. Ela não dá acesso a nenhum dado privado ou recurso extra.</p><div class="pix-key" id="pixKeyText"></div><button class="primary-btn" id="copyPix" type="button">Copiar chave Pix</button></div></div>
-<script src="./edition-03.js" defer></script><script src="./config.js"></script><script defer="" src="./app.js"></script><script defer="" src="./atelier.js"></script>
+<script src="./edition-03.js" defer></script><script src="./config.js"></script><script defer="" src="./app.js"></script><script defer="" src="./atelier.js"></script><script defer="" src="./video.js"></script>
 </body>
 </html>

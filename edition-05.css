@@ -1,0 +1,76 @@
+/* REEECAP V6 — ajustes de UX pedidos nas gravações, sem rastreamento. */
+[hidden]{display:none!important}
+:root{--v6-highlight:var(--theme-accent,#bc86e8)}
+body[data-theme="reddit"]{--theme-ink:#1d0f10;--theme-accent:#fa985d;--theme-second:#fd4d31;--theme-third:#ffbd72;--theme-paper:#fbe8de;--theme-shadow:#e14b283c}
+body[data-theme] .mobile-dock a.is-active{color:var(--theme-paper,#fff);background:color-mix(in srgb,var(--theme-accent) 19%,transparent)}
+body[data-view="home"] .wrap,body[data-view="studio"] .wrap,body[data-view="about"] .wrap{width:min(1400px,calc(100% - 98px))}
+.hero{gap:clamp(20px,3.3vw,70px);grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);min-height:680px}
+.hero h1{font-size:clamp(48px,6vw,99px)!important;overflow-wrap:normal}
+.hero-left,.hero-right{min-width:0}
+.hero-right{isolation:isolate}
+.platforms-section{padding-top:100px;padding-bottom:102px}
+.platform-grid{gap:clamp(18px,2.4vw,35px)!important}
+.platform-card{min-width:0}
+.platform-card:focus-visible{outline:2px solid var(--theme-accent)!important;outline-offset:5px}
+.preview-stage{border-radius:20px}
+.studio-heading{padding-top:45px}
+.studio-layout{max-width:1400px!important}
+.studio-layout .step-main-pane,.studio-layout .export-panel{padding:clamp(28px,3.2vw,52px)}
+.studio-layout .step-card{min-height:104px}
+.studio-layout .step-card h3{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:670;letter-spacing:-.025em}
+.studio-layout .step-num,.studio-layout .step-card p,.guide-screen-head,.guide-screen-highlight,.guide-screens-caption,.section-kicker,.tag,.step-privacy-note,.stage-tap,.platform-note,.check-group h4,.do-not-export{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:normal!important}
+.studio-layout .step-num{font-size:14px;font-weight:700}
+.studio-layout .export-panel .tag{background:transparent;border:0;border-radius:0;padding:0;color:#d6c9df;font-size:13px;text-transform:none}
+.studio-layout .checklist-grid{gap:clamp(20px,3vw,54px)}
+.studio-layout .check-group h4{font-size:15px;line-height:1.4}
+.studio-layout .category-tags{gap:10px}
+.studio-layout .category-tags span{font-size:14px;padding:12px 15px;border-radius:13px;background:color-mix(in srgb,var(--theme-accent) 16%,#24212c);border-color:color-mix(in srgb,var(--theme-accent) 26%,#ffffff10)}
+.studio-layout .category-tags.secondary span{background:#ffffff0b;border-color:#ffffff29}
+.studio-layout .check-green{color:var(--theme-accent)!important}
+.studio-layout .check-purple{color:var(--theme-accent)!important}
+.studio-layout .do-not-export{font-size:13px;line-height:1.7}
+.studio-layout .upload-btn{background:#592c6b!important;color:white!important;border:1px solid #ffffff38;box-shadow:none!important;opacity:1!important;min-height:52px}
+.studio-layout .upload-btn:hover{background:#6f3986!important;color:white!important}
+.studio-layout .dropzone{border:1px solid #aa8ab6;background:#fffaff;color:#261931}
+.studio-layout .dropzone:hover,.studio-layout .dropzone.dragging{border-color:#713b89;background:#fff}
+.studio-layout .import-wrap{background:#ebdbea}
+.studio-layout .guide-actions{gap:12px}
+.studio-layout .guide-actions .guide-button{min-width:0}
+.studio-layout .primary-guide,.studio-layout .advance-step{color:#21172a!important}
+.recap-ready{padding:clamp(40px,7vw,105px) clamp(25px,6vw,90px);border:1px solid #ffffff36;border-radius:24px;background:linear-gradient(125deg,color-mix(in srgb,var(--theme-second) 20%,#1b1828),color-mix(in srgb,var(--theme-accent) 27%,#1d1829));min-height:410px;display:flex;align-items:flex-start;justify-content:center;flex-direction:column;margin-top:12px;margin-bottom:80px}
+.ready-mark{width:62px;height:62px;object-fit:contain;margin-bottom:12px}
+.ready-eyebrow{font-size:13px;color:#f6d6f5;font-weight:670}
+.recap-ready h2{font-size:clamp(38px,5.3vw,72px);letter-spacing:-.07em;line-height:1.04;max-width:900px;margin:13px 0}
+.recap-ready p{font-size:16px;line-height:1.55;max-width:620px;color:#e0d6e6}
+.ready-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.ready-actions button{min-height:49px;padding:13px 20px;border:1px solid #ffffff49;border-radius:12px;background:#ffffff12;color:#fff;font-weight:720;font-size:14px}
+.ready-actions button.ready-primary{background:white;color:#20172b;border-color:#fff}
+.ready-actions button:hover{filter:brightness(1.13)}
+body[data-view="studio"][data-result-ready="true"] .studio-layout{display:none!important}
+body[data-view="studio"][data-result-ready="true"] .resume-banner{display:none}
+.story-controls #musicToggle.sound-on{border-color:#fff;color:#fff;background:#ffffff2b}
+.story-backdrop{pointer-events:none}
+.story-bottom-actions{gap:7px}
+.story-bottom-actions button{flex:1;padding:10px 9px!important;font-size:12px!important;white-space:nowrap}
+.story-bottom-actions #downloadVideo{background:#ffffff24;border-color:#ffffff7b}
+.story-bottom-actions button:disabled{opacity:.65;cursor:progress}
+/* Replaces decorative random cards with a quiet, filmstrip-like sequence. */
+.ambient-posts{opacity:.27;transform:rotate(-9deg);right:-95px;width:48%;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 2%,#000 20%,#000 80%,transparent 98%)}
+.ambient-posts span{width:100%;height:19%;right:0!important;border-radius:10px;border:3px solid #fff6;background:repeating-linear-gradient(90deg,#fff4 0 14px,transparent 14px 30px) top / 100% 9px no-repeat,repeating-linear-gradient(90deg,#fff4 0 14px,transparent 14px 30px) bottom / 100% 9px no-repeat,linear-gradient(130deg,#ffffff20,#ffffff07);transform:none!important;animation:reelfloat 14s ease-in-out infinite alternate}
+.ambient-posts span:first-child{top:4%}.ambient-posts span:nth-child(2){top:31%;animation-delay:-4s}.ambient-posts span:nth-child(3){top:58%;animation-delay:-8s}
+@keyframes reelfloat{from{translate:0 -8px}to{translate:0 20px}}
+@media(min-width:861px) and (max-width:1120px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)}.hero h1{font-size:clamp(45px,5.5vw,75px)!important}}
+@media(max-width:880px){body[data-view] .wrap{width:calc(100% - 42px)}.hero{grid-template-columns:1fr 1fr}.hero h1{font-size:clamp(43px,6vw,72px)!important}}
+@media(max-width:610px){body[data-view] .wrap{width:calc(100% - 34px)}.hero{display:flex;min-height:0}.hero h1{font-size:clamp(43px,12vw,72px)!important}.platform-grid{gap:16px!important}.platforms-section{padding-top:45px;padding-bottom:40px}.studio-layout .step-main-pane,.studio-layout .export-panel{padding:25px 20px}.studio-layout .category-tags span{font-size:12px;padding:10px}.studio-layout .check-group h4{font-size:13px}.studio-layout .step-num{font-size:12px}.recap-ready{padding:34px 22px;min-height:440px;border-radius:16px;margin-bottom:30px}.recap-ready h2{font-size:43px}.recap-ready p{font-size:14px}.ready-actions{flex-direction:column;width:100%}.ready-actions button{width:100%}.story-bottom{padding:18px 11px 25px}.story-bottom-actions{gap:5px}.story-bottom-actions button{padding:10px 5px!important;font-size:10px!important}.story-controls{gap:5px}.story-controls button{width:34px;min-width:34px;height:34px;min-height:34px}}
+@media(prefers-reduced-motion:reduce){.ambient-posts span{animation:none}}
+/* Animated comments use the visitor's own locally parsed text, never invented comments. */
+.story-comment-roll{position:absolute;right:-11%;top:4%;height:95%;width:70%;display:flex;flex-direction:column;gap:16px;overflow:hidden;pointer-events:none;opacity:.24;mask-image:linear-gradient(transparent,#000 18%,#000 77%,transparent);animation:commentsFloat 18s linear infinite alternate}
+.story-comment-roll span{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:block;max-width:100%;color:white;font-weight:650;font-size:16px;line-height:1.3;padding:15px 18px;border-radius:17px;background:#ffffff2b;border:1px solid #ffffff45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes commentsFloat{from{transform:translateY(10%)}to{transform:translateY(-25%)}}
+.dashboard-metrics .metric-icon svg{height:27px;width:27px;stroke-width:1.9}
+@media(max-width:610px){.story-comment-roll{width:78%;opacity:.16;right:-18%}}
+@media(prefers-reduced-motion:reduce){.story-comment-roll{animation:none}}
+
+.story-bottom{position:relative}
+.video-export-status:empty{display:none}
+.video-export-status{position:absolute;bottom:calc(100% + 12px);left:10px;right:10px;text-align:center;display:block;padding:7px 12px;border-radius:10px;background:#160d25b5;color:white;font-family:system-ui,-apple-system,sans-serif;font-size:11px;line-height:1.4;pointer-events:none}

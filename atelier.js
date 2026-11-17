@@ -112,7 +112,7 @@
     nav.setAttribute('aria-label', 'Menu principal');
     nav.innerHTML = `
       <a href="#inicio" data-view-link="home" class="is-active" aria-label="Explorar plataformas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 9-8 9 8v10H3z"/><path d="M9 21v-7h6v7"/></svg>Explorar</a>
-      <a href="#como-funciona" data-view-link="studio" aria-label="Criar retrospectiva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>Criar recap</a>
+      <a href="#plataformas" data-view-link="home" aria-label="Escolher aplicativo para a retrospectiva"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>Criar recap</a>
       <a href="#privacidade" data-view-link="about" aria-label="Conhecer o projeto e privacidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>Sobre</a>`;
     $('.site-header')?.after(nav);
   }

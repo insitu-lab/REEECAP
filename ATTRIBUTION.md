@@ -7,3 +7,5 @@ Os ícones de marcas em `assets/brands/` e o ícone de escudo em `assets/icons/`
 Marcas como Instagram, TikTok, YouTube e Reddit são propriedade de seus respectivos titulares. O uso aqui identifica as plataformas, sem alegar parceria oficial.
 
 A marca REEECAP foi fornecida pelo responsável do projeto.
+
+A trilha `assets/reeecap-original-loop.mp3` é uma composição instrumental original criada especificamente para o REEECAP. Não contém gravações de músicas comerciais.
