@@ -1,5 +1,8 @@
 /* REEECAP 6.2: true canvas-rendered cinematic opening, not a static slide. */
 .story-intro-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:2;pointer-events:none}
+.story-render-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:2;pointer-events:none}
+.story-visual:has(.story-render-canvas){padding:0!important;overflow:hidden}
+.story-visual:has(.story-render-canvas) .story-content{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 .story-visual:has(.story-intro-canvas){padding:0!important;overflow:hidden}
 .story-content.kind-intro{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 /* Keep the REEECAP controls readable over the moving opening. */

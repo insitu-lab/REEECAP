@@ -1,83 +1,212 @@
-/* REEECAP 6.3 / EDITORIAL MOTION OPENING
-   New original art direction, inspired by the pace and craft of high-end recaps.
-   One time-based canvas composition is used by both player and export. */
+/* REEECAP 6.4. Continuous ten-second openings, shared by player/PNG/export.
+   Kept at the existing path so installed projects do not need a new entry point.
+   Footage is decorative stock from the existing credited library, never user posts. */
 (()=>{'use strict';
-const W=720,H=1280;
-const P={cream:'#fff2dd',paper:'#faf2e8',ink:'#141222',purple:'#5024bd',night:'#110d23',coral:'#fc493c',pink:'#f74c9b',lime:'#daff68',cyan:'#4af2e8',blue:'#3048f6'};
-const limits=[0,1.38,2.8,4.18,5.65,7.05,8.35,10];
-let raf=0,session=0,live=null;
-const posters=Array.from({length:8},(_,i)=>{const im=new Image();im.src=`./assets/videos/posters/reel_${String([1,2,3,4,7,8,11,12][i]).padStart(2,'0')}.webp`;return im;});
-const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-const sm=v=>{v=clamp(v);return v*v*(3-2*v)};
-const out=v=>1-Math.pow(1-clamp(v),3);
+const W=720,H=1280,clamp=v=>Math.max(0,Math.min(1,v));
+const smooth=v=>{v=clamp(v);return v*v*(3-2*v)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const between=(t,a,b)=>smooth((t-a)/(b-a));
+const visible=(t,a,b)=>between(t,a,a+.65)*(1-between(t,b-.45,b));
+let raf=0,session=0;
+const glyphLayer=document.createElement('canvas');glyphLayer.width=W;glyphLayer.height=H;
+const metricLayer=document.createElement('canvas');metricLayer.width=W;metricLayer.height=H;
+const posters=[2,4,12,9].map(i=>{const im=new Image();im.crossOrigin='anonymous';im.src=`./assets/videos/posters/reel_${String(i).padStart(2,'0')}.webp`;return im});
+const words={
+ pt:{year:'REGISTROS DE UM ANO SEU.',demo:'DEMO · DADOS FICTÍCIOS',stock:'FILMAGENS ILUSTRATIVAS'},
+ en:{year:'A YEAR OF YOUR RECORDS.',demo:'DEMO · FICTIONAL DATA',stock:'ILLUSTRATIVE FOOTAGE'},
+ es:{year:'REGISTROS DE UN AÑO TUYO.',demo:'DEMO · DATOS FICTICIOS',stock:'VÍDEOS ILUSTRATIVOS'}
+};
+// Opening attack markers measured locally from the supplied tracks (40-500Hz
+// log-energy flux). Accents are spatial impulses, never full-screen flashes.
+const attacks={instagram:[.4,.93,2.04,2.57,4.22,4.76,5.44,6.94,7.71,8.16,8.83,9.28],tiktok:[.2,1.13,1.83,2.3,2.76,3.23,3.93,5.33,5.79,6.37,8.59,9.51]};
+const impulse=(t,net)=>Math.max(0,...attacks[net].map(at=>t>=at?Math.exp(-(t-at)*12):0));
+function narrative(year){const lang=window.REEECAP_LANGUAGE?.()||'pt';return {
+ pt:{start:['Volta a',String(year)+'.'],middle:['Do feed aos','seus registros.'],end:'Rever. Reencontrar. REEECAP.'},
+ en:{start:['Back to',String(year)+'.'],middle:['From your feed','to your records.'],end:'Revisit. Rediscover. REEECAP.'},
+ es:{start:['Vuelve a',String(year)+'.'],middle:['De tu feed a','tus registros.'],end:'Revisita. Reencuentra. REEECAP.'}
+}[lang]||{start:['Back to',String(year)+'.'],middle:['From your feed','to your records.'],end:'Revisit. Rediscover. REEECAP.'}}
+function copy(){return words[window.REEECAP_LANGUAGE?.()]||words.pt}
 function rect(c,x,y,w,h,color){c.fillStyle=color;c.fillRect(x,y,w,h)}
-function txt(c,s,x,y,size,color,opts={}){c.save();c.fillStyle=color;c.textBaseline='alphabetic';c.textAlign=opts.align||'left';c.font=`${opts.weight||900} ${size}px ${opts.serif?'Georgia,serif':'Inter Display,Inter,Arial,sans-serif'}`;c.letterSpacing=(opts.track??-3)+'px';let ww=c.measureText(String(s)).width;let max=opts.max||W+350;if(ww>max){c.translate(x,y);c.scale(max/ww,1);c.fillText(s,0,0)}else c.fillText(s,x,y);c.restore()}
-function dot(c,x,y,r,color){c.beginPath();c.arc(x,y,r,0,2*Math.PI);c.fillStyle=color;c.fill()}
-function line(c,x1,y1,x2,y2,color,width=3){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()}
-function frame(c,x,y,w,h,idx,t,mode){c.save();c.translate(x,y);c.beginPath();c.rect(0,0,w,h);c.clip();rect(c,0,0,w,h,['#38315b','#d35b78','#74a5a0','#292a3e'][idx%4]);
- const ready=window.REEECAP_MOTION?.clips?.filter(v=>v.readyState>=2&&v.videoWidth>0)||[];const v=ready[idx%Math.max(1,ready.length)];const poster=posters[idx%posters.length];let media=v||((poster?.complete&&poster.naturalWidth)?poster:null);
- if(media){let vw=media.videoWidth||media.naturalWidth,vh=media.videoHeight||media.naturalHeight;if(vw&&vh){let z=Math.max(w/vw,h/vh)*1.075;let drift=Math.sin(t*.35+idx)*w*.035;try{c.drawImage(media,(w-vw*z)/2+drift,(h-vh*z)/2,vw*z,vh*z)}catch{}}}
- rect(c,0,0,w,h,mode==='tik'?'#0b131520':'#290c2720');c.restore()}
-function stamp(c,word,x,y,fill,ink,angle=-.12){c.save();c.translate(x,y);c.rotate(angle);rect(c,-12,-45,word.length*25+41,63,fill);txt(c,word,0,0,32,ink,{track:-1});c.restore()}
-function corners(c,color){c.save();c.strokeStyle=color;c.lineWidth=3;[[25,30,1,1],[695,30,-1,1],[25,1250,1,-1],[695,1250,-1,-1]].forEach(([x,y,sx,sy])=>{c.beginPath();c.moveTo(x+sx*26,y);c.lineTo(x,y);c.lineTo(x,y+sy*26);c.stroke()});c.restore()}
-function label(c,name,i,color){txt(c,'REEECAP  /  '+name.toUpperCase(),35,83,21,color,{weight:800,track:2});txt(c,String(i+1).padStart(2,'0')+' / 07',685,83,19,color,{align:'right',weight:700,track:1})}
-function lines(c,color,t){c.save();c.strokeStyle=color;c.lineWidth=1.5;for(let i=0;i<12;i++){let y=220+i*65+(t*7)%65;c.beginPath();c.moveTo(-20,y);c.lineTo(740,y-28);c.stroke()}c.restore()}
-function instagram(c,i,p,t,year){switch(i){
- case 0:{rect(c,0,0,W,H,P.cream);label(c,'Instagram',i,P.ink);rect(c,0,920,720,360,P.coral);c.save();c.translate(475,550);c.rotate(-.2);c.strokeStyle=P.pink;c.lineWidth=46;c.beginPath();c.arc(0,0,270,Math.PI*.12,Math.PI*1.89);c.stroke();c.restore();
- txt(c,'NÃO',-15,480,270,P.ink,{max:755,track:-16});txt(c,'PISCA.',18,705,194,P.ink,{max:680,track:-13});txt(c,'SEU ANO VAI PASSAR DE NOVO.',34,1038,41,P.cream,{max:660,weight:900,track:-2});
- const b=1-out(p/.37);rect(c,0,0,720,1280,`rgba(255,242,221,${b})`);break;}
- case 1:{rect(c,0,0,W,H,P.coral);label(c,'Instagram',i,'#fff6df');c.save();c.translate(-170+p*90,120);c.rotate(-.12);for(let j=0;j<5;j++){rect(c,j*194-70,0,32,1140,P.cream)}c.restore();
- txt(c,String(year),-55,740,348,P.cream,{max:860,track:-22});rect(c,28,787,665,20,P.ink);
- txt(c,'NÃO FOI SÓ UM NÚMERO.',30,884,40,P.ink,{max:670,track:-1});txt(c,'FOI O SEU ANO.',30,958,67,P.cream,{max:667,track:-3});break;}
- case 2:{rect(c,0,0,W,H,P.night);label(c,'Instagram',i,'#ffffff');
- const k=out(p/.42);frame(c,-60,250+(1-k)*650,310,600,0,t,'inst');frame(c,230,165+(1-k)*500,310,650,2,t,'inst');frame(c,515,240+(1-k)*780,310,590,5,t,'inst');
- rect(c,0,901,720,379,P.night);txt(c,'CADA',21,1020,110,P.cream,{max:660});txt(c,'SEGUNDO',19,1147,126,P.cream,{max:690});stamp(c,'CONTA.',435,1200,P.pink,P.night,-.14);break;}
- case 3:{rect(c,0,0,W,H,P.cream);label(c,'Instagram',i,P.ink);lines(c,'#f24c5730',t);
- let a=out(p/.38),dy=(1-a)*160;
- txt(c,'VOCÊ',30,359+dy,154,P.ink,{max:650});rect(c,0,400+dy,720,18,P.coral);
- txt(c,'VIVEU.',-16,642+dy,171,P.coral,{max:757});txt(c,'CURTIU.',33,824+dy,139,P.purple,{max:690});
- txt(c,'GUARDOU.',-22,1005+dy,136,P.ink,{max:750});stamp(c,'TUDO ISSO.',250,1110,P.lime,P.ink,-.08);break;}
- case 4:{rect(c,0,0,W,H,P.purple);label(c,'Instagram',i,P.cream);c.save();c.translate(350,600);c.rotate(-.22);for(let k=0;k<9;k++){rect(c,-900+k*138+Math.sin(t*.5)*16,-800,49,2000,k%2?P.pink:P.coral)}c.restore();
- rect(c,0,385,720,460,'#16082be8');txt(c,'TODOS ESSES',24,520,84,P.cream,{max:670});txt(c,'MOMENTOS',-12,656,120,P.cream,{max:751});txt(c,'MERECEM MAIS.',23,748,56,P.lime,{max:676});break;}
- case 5:{rect(c,0,0,W,H,P.lime);label(c,'Instagram',i,P.ink);
- for(let j=0;j<7;j++){c.save();c.translate(-280+j*180+((p*160)%130),295+j*109);c.rotate(-.18);txt(c,String(year),0,0,134,j%2?P.purple:P.ink,{max:350,track:-9});c.restore()}
- rect(c,0,820,720,460,P.ink);txt(c,'AGORA',28,971,142,P.cream,{max:650});txt(c,'É SUA VEZ.',26,1101,102,P.lime,{max:665});break;}
- case 6:{rect(c,0,0,W,H,P.night);label(c,'Instagram',i,P.cream);c.save();c.globalAlpha=.25;for(let j=0;j<26;j++){let x=(j*111.78+Math.sin(t*.21+j)*52)%760,y=(j*177.7+Math.cos(t*.37+j)*71)%1320;dot(c,x,y,j%4+1,P.pink)}c.restore();
- const q=out(p/.32);c.save();c.translate((1-q)*850,0);rect(c,33,302,654,13,P.coral);txt(c,'O SEU',30,490,135,P.cream,{max:660});txt(c,'ANO.',30,649,188,P.cream,{max:670});txt(c,'EM MOVIMENTO.',22,788,72,P.pink,{max:670});rect(c,34,838,650,12,P.lime);c.restore();
- txt(c,'INSTAGRAM  ×  REEECAP',35,1190,26,P.cream,{weight:800,track:4,max:650});break;}}
+function color(a,b,p){return '#'+[0,1,2].map(i=>Math.round(mix(parseInt(a.slice(1+i*2,3+i*2),16),parseInt(b.slice(1+i*2,3+i*2),16),p)).toString(16).padStart(2,'0')).join('')}
+function type(c,text,x,y,size,ink,{serif=false,weight=600,max=620,spacing=0,align='left'}={}){
+ c.save();c.fillStyle=ink;c.textAlign=align;c.textBaseline='alphabetic';
+ c.font=`${serif?'italic ':''}${weight} ${size}px ${serif?'Georgia,serif':'Inter,Arial,sans-serif'}`;
+ c.letterSpacing=spacing+'px';
+ // Fit by reducing font size, preserving the letterforms' proportions.
+ const measured=c.measureText(String(text)).width;
+ if(measured>max)c.font=`${serif?'italic ':''}${weight} ${size*max/measured}px ${serif?'Georgia,serif':'Inter,Arial,sans-serif'}`;
+ c.fillText(String(text),x,y);c.restore();
 }
-function tiktok(c,i,p,t,year){switch(i){
- case 0:{rect(c,0,0,W,H,P.night);label(c,'TikTok',i,P.cream);c.save();c.rotate(-.14);for(let j=0;j<8;j++){rect(c,-270+j*130,-100,18,1600,j%2?P.cyan:P.pink)}c.restore();
- rect(c,0,315,720,620,P.night);txt(c,'HEY.',-7,575,288,P.cyan,{max:735});txt(c,'OLHA ISSO.',20,727,105,P.cream,{max:678});stamp(c,'APERTE O PLAY.',175,980,P.pink,P.ink,.09);break;}
- case 1:{rect(c,0,0,W,H,P.cyan);label(c,'TikTok',i,P.ink);
- txt(c,'20',-65,600,443,P.ink,{max:820,track:-26});txt(c,String(year).slice(-2),220,957,434,P.pink,{max:690,track:-24});rect(c,0,976,720,30,P.ink);txt(c,'ISSO FOI VOCÊ.',35,1104,71,P.ink,{max:660});break;}
- case 2:{rect(c,0,0,W,H,P.ink);label(c,'TikTok',i,P.cream);
- const k=out(p/.32);frame(c,20+(1-k)*800,205,320,502,7,t,'tik');frame(c,368-(1-k)*800,205,335,502,4,t,'tik');frame(c,80,732+(1-k)*750,560,304,1,t,'tik');
- rect(c,0,1040,720,240,P.pink);txt(c,'NADA PAROU.',12,1171,104,P.ink,{max:694});break;}
- case 3:{rect(c,0,0,W,H,P.paper);label(c,'TikTok',i,P.ink);
- c.save();c.translate(352,590);c.rotate(.12);rect(c,-395,-300,800,520,P.blue);c.restore();txt(c,'UM',-18,370,239,P.ink,{max:760});txt(c,'ANO',40,625,257,P.cream,{max:650});txt(c,'INTEIRO.',-10,842,158,P.ink,{max:745});
- txt(c,'EM CADA TOQUE.',35,1111,54,P.blue,{max:658});break;}
- case 4:{rect(c,0,0,W,H,P.pink);label(c,'TikTok',i,P.ink);
- for(let j=0;j<7;j++){let px=j%2?80:-190;txt(c,'REPLAY',px-((p*130)%90),260+j*145,161,j%2?P.cream:P.ink,{track:-10,max:940})}
- rect(c,0,515,720,275,P.cyan);txt(c,'NÃO É',32,627,127,P.ink,{max:658});txt(c,'SÓ REPLAY.',16,737,93,P.ink,{max:690});break;}
- case 5:{rect(c,0,0,W,H,P.ink);label(c,'TikTok',i,P.cream);
- for(let j=0;j<8;j++){let x=-120+j*125,y=170+((j*23+(p*45))%130);rect(c,x,y,77,900,j%3===0?P.pink:P.cyan)}
- rect(c,0,600,720,365,P.ink);txt(c,'É A SUA',28,755,124,P.cream,{max:660});txt(c,'HISTÓRIA.',12,899,145,P.cyan,{max:700});break;}
- case 6:{rect(c,0,0,W,H,P.cream);label(c,'TikTok',i,P.ink);
- c.save();c.translate(620,320);c.rotate(.19);rect(c,-250,-150,440,350,P.cyan);rect(c,-285,-185,440,350,P.pink);rect(c,-320,-220,440,350,P.ink);c.restore();
- const q=out(p/.38);c.save();c.translate(0,(1-q)*420);txt(c,'SEU ANO.',24,667,157,P.ink,{max:665});txt(c,'SEU RITMO.',18,825,113,P.ink,{max:680});rect(c,34,870,650,15,P.pink);c.restore();
- txt(c,'TIKTOK × REEECAP',35,1187,28,P.ink,{weight:800,track:4,max:650});break;}}
+function footage(c,idx,box,t){
+ const [x,y,w,h,angle,alpha]=box;if(alpha<=0||w<=0||h<=0)return;
+ c.save();c.globalAlpha=alpha;c.translate(x,y);c.rotate(angle);
+ c.beginPath();c.roundRect(-w/2,-h/2,w,h,Math.min(5,w*.02));c.clip();rect(c,-w/2,-h/2,w,h,'#423943');
+ const clips=window.REEECAP_MOTION?.clips||[],v=clips[idx%Math.max(1,clips.length)],p=posters[idx%posters.length];
+ const media=v?.readyState>=2&&v.videoWidth?v:p?.complete&&p.naturalWidth?p:null;
+ if(media){const mw=media.videoWidth||media.naturalWidth,mh=media.videoHeight||media.naturalHeight;
+  const z=Math.max(w/mw,h/mh)*(1.06+.025*Math.sin(t*.34+idx));
+  c.drawImage(media,-mw*z/2+Math.sin(t*.27+idx)*w*.018,-mh*z/2,mw*z,mh*z);
+ }
+ rect(c,-w/2,-h/2,w,h,'#150c1614');c.restore();
 }
-function scene(c,i,p,t,network,year){c.save();const op=network==='tiktok'?tiktok:instagram;op(c,i,p,t,year);c.restore()}
-function draw(ctx,slide,timeMs,network,year){if(!ctx)return;let t=clamp((Number(timeMs)||0)/1000,0,9.999),net=String(network||slide?.platform||'instagram').toLowerCase()==='tiktok'?'tiktok':'instagram';let yy=year||slide?.year||new Date().getFullYear();
- ctx.save();const scale=Math.min(ctx.canvas.width/W,ctx.canvas.height/H);ctx.setTransform(scale,0,0,scale,(ctx.canvas.width-W*scale)/2,(ctx.canvas.height-H*scale)/2);
- ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();let i=limits.findIndex((v,j)=>j<limits.length-1&&t>=v&&t<limits[j+1]);i=Math.max(0,i);let t0=limits[i],t1=limits[i+1],p=(t-t0)/(t1-t0);scene(ctx,i,p,t,net,yy);
- // Transition is an animated diagonal editorial cut, not a simple cross-fade.
- if(i<6){const duration=net==='tiktok'?.23:.29, edge=t1-duration;if(t>edge){let u=out((t-edge)/duration),d=110+u*1350;ctx.save();ctx.beginPath();ctx.moveTo(-220,-140);ctx.lineTo(d-630,-140);ctx.lineTo(d+75,1420);ctx.lineTo(-220,1420);ctx.closePath();ctx.clip();scene(ctx,i+1,0,t,net,yy);ctx.restore();}}
- // Transition straight into the first measured Story, with no full-screen hold.
- if(t>9.72){rect(ctx,0,0,W,H,`rgba(14,10,29,${sm((t-9.72)/.28)})`)}ctx.restore();}
-function stop(){session++;if(raf)cancelAnimationFrame(raf);raf=0;live=null;}
-function attach(canvas,slide,elapsed,net,year){stop();if(!canvas)return;let s=session;live=canvas;const ctx=canvas.getContext('2d',{alpha:false});void window.REEECAP_MOTION?.ensure?.().catch(()=>{});let last=0;
- const run=(now=0)=>{if(s!==session||!canvas.isConnected||!live)return;if(!last||now-last>=30){draw(ctx,slide,elapsed(),net,year);last=now}raf=requestAnimationFrame(run)};run()}
-window.REEECAP_INTRO={draw,attach,stop,duration:10000,version:'6.3-motion-editorial'};
+function instagramKinetic(c,t,year){
+ const cp=copy(),story=narrative(year),hit=impulse(t,'instagram'),dark=between(t,4.25,6.0),ink=dark<.85?'#272028':'#fff4e8';
+ rect(c,0,0,W,H,color('#f4eee4','#27131f',dark));
+ const open=between(t,.15,2.85),fold=between(t,2.5,4.4),leave=between(t,7.2,9.5);
+ // A single photographic iris opens, unfolds into three panels, then becomes
+ // the counterforms of the year. It is one material changing shape, not slides.
+ c.save();
+ const radius=mix(112,850,open)+hit*7;
+ c.beginPath();c.arc(360,640,radius,0,Math.PI*2);c.clip();
+ for(let i=0;i<3;i++){
+  const x=mix(360,(i-1)*270+360,fold)+(i-1)*leave*370;
+  const y=640+Math.sin(t*.65+i)*34+(i-1)*fold*90;
+  footage(c,i,[x,y,mix(710,246,fold),mix(1200,770,fold),(i-1)*fold*.14+Math.sin(t*.3)*.016,1-leave*.85],t);
+ }
+ c.restore();
+ rect(c,0,0,W,H,'#27131f'+Math.round(between(t,4.15,5.3)*.93*255).toString(16).padStart(2,'0'));
+ // Advancing paper shutters carve the aperture; their edges carry the type.
+ const top=mix(427,180,open),bottom=mix(853,1120,open);
+ c.save();c.globalAlpha=1-dark*.85;rect(c,0,0,W,top,'#f4eee4');rect(c,0,bottom,W,H-bottom,'#f4eee4');c.restore();
+ const intro=visible(t,0,2.8);c.save();c.globalAlpha=intro;
+ type(c,story.start[0],50,mix(400,351,open),90,'#272028',{weight:500});
+ type(c,story.start[1],670,mix(1001,1060,open),100,'#272028',{serif:true,weight:400,align:'right'});c.restore();
+ const caption=visible(t,2.7,4.8);c.save();c.globalAlpha=caption;
+ rect(c,35,548,650,182,'#27131fe8');
+ type(c,story.middle[0],61,623,67,'#fff4e8',{weight:500});
+ type(c,story.middle[1],61,696,70,'#fff4e8',{serif:true,weight:400});c.restore();
+ const yearAlpha=visible(t,4.35,7.8);c.save();c.globalAlpha=yearAlpha;
+ // Video lives inside the four glyphs. Explicit source-atop compositing is
+ // isolated on a scratch canvas, so the preview and exported pixels agree.
+ const layer=glyphLayer,lc=layer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);lc.globalCompositeOperation='source-over';
+ lc.save();lc.beginPath();lc.rect(45,415,630,370);lc.clip();
+ [...String(year)].slice(0,4).forEach((digit,j)=>{
+  const u=between(t,4.35+j*.12,5.5+j*.12),exit=between(t,7.1,7.9);
+  type(lc,digit,150+j*140,730+(1-u)*420-exit*130,265,'#fff4e8',{weight:700,max:145,spacing:-3,align:'center'});
+ });lc.restore();
+ lc.globalCompositeOperation='source-atop';footage(lc,0,[360,640,820,1300,0,.86],t);
+ c.drawImage(layer,0,0);type(c,cp.year,360,837,21,'#fff4e8',{weight:600,spacing:2,max:610,align:'center'});c.restore();
+ const brand=between(t,7.1,8.4);c.save();c.globalAlpha=brand;
+ const name='REEECAP',font=88,adv=85;
+ [...name].forEach((letter,i)=>{
+  const u=between(t,7.1+i*.065,8.05+i*.065);
+  type(c,letter,105+i*adv,650+(1-u)*230-(t-8.5)*10,font,'#fff4e8',{weight:600,max:90,align:'center'});
+ });
+ type(c,story.end,360,747,27,'#e8b3bc',{weight:400,align:'center'});
+ rect(c,50,825,620*between(t,7.6,9.35),2,'#d87c83');c.restore();
+ type(c,'INSTAGRAM',50,169,22,ink,{spacing:3});
+}
+function tiktokKinetic(c,t,year){
+ const story=narrative(year),hit=impulse(t,'tiktok'),unfold=between(t,1.7,4.1),returning=between(t,5.7,7.65),exit=between(t,7.15,8.4);
+ rect(c,0,0,W,H,'#0b1114');
+ // REEECAP's three E-bars act as a transport: images sweep backwards through
+ // the same crop, unfold into a wide ribbon and return as the year's glyphs.
+ c.save();c.translate(360,640);const zoom=1+Math.sin(t*.7)*.035+hit*.009;c.scale(zoom,zoom);c.translate(-360,-640);
+ for(let i=0;i<3;i++){
+  const turn=between(t,1.8+i*.15,4+i*.15),back=between(t,5.8+i*.08,7.6+i*.08);
+  const x=mix(110+i*250,360,turn)+Math.sin(t*.5+i)*22-(i-1)*back*510;
+  const y=mix(640,360+i*275,turn);
+  footage(c,i,[x,y,mix(195,900,turn),mix(1150,225,turn),mix((i-1)*.05,0,turn),.92*(1-exit)],t);
+ }
+ c.restore();
+ const shade=c.createLinearGradient(0,0,0,H);shade.addColorStop(0,'#0b1114ee');shade.addColorStop(.5,'#0b111400');shade.addColorStop(1,'#0b1114ee');c.fillStyle=shade;c.fillRect(0,0,W,H);
+ const a=visible(t,.08,2.8);c.save();c.globalAlpha=a;
+ type(c,story.start[0],50,430,92,'#f3f5ed',{weight:600});
+ type(c,story.start[1],670,985,143,'#9df1df',{weight:700,align:'right'});c.restore();
+ const middle=visible(t,2.7,4.9);c.save();c.globalAlpha=middle;
+ rect(c,0,543,720,207,'#0b1114ef');
+ type(c,story.middle[0],48,624,66,'#f3f5ed',{weight:600});
+ type(c,story.middle[1],48,704,70,'#9df1df',{weight:600});c.restore();
+ c.save();c.globalAlpha=visible(t,4.5,7.7);
+ c.beginPath();c.rect(45,420,630,375);c.clip();
+ [...String(year)].slice(0,4).forEach((digit,j)=>{
+  const u=between(t,4.45+j*.12,5.7+j*.12),back=between(t,6.4,7.75);
+  const x=150+j*140+(j%2?-1:1)*(1-u)*740;
+  type(c,digit,x,720-back*90,260,j===1||j===2?'#9df1df':'#f3f5ed',{weight:700,max:146,align:'center'});
+ });c.restore();
+ // A deliberate visual breath precedes the identity reveal.
+ const brand=between(t,7.5,8.55);c.save();c.globalAlpha=brand;
+ c.translate(0,(1-brand)*70-(t-8.5)*13);
+ type(c,'REEECAP',360,640,100,'#f3f5ed',{weight:700,max:620,spacing:-4,align:'center'});
+ type(c,story.end,360,731,27,'#9df1df',{weight:400,align:'center'});
+ // Three strokes of the E converge; the final edge opens onto the real metric.
+ for(let i=0;i<3;i++)rect(c,50,818+i*13,620*between(t,7.6+i*.08,9.35),2,'#9df1df');c.restore();
+ type(c,'TIKTOK',50,169,22,'#c8e7df',{spacing:3});
+}
+function draw(ctx,slide,timeMs,network,year){
+ if(!ctx)return;const t=Math.max(0,Math.min(10,(Number(timeMs)||0)/1000)),net=network||slide?.platform||'instagram';
+ ctx.save();const s=ctx.canvas.width/W;ctx.setTransform(s,0,0,s,0,0);ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
+ (net==='tiktok'?tiktokKinetic:instagramKinetic)(ctx,t,year??slide?.year??new Date().getFullYear());
+ type(ctx,copy().stock,50,1145,17,net==='tiktok'||t>5.6?'#d4c9cc':'#342932',{weight:500,spacing:1});
+ if(slide?.demo)type(ctx,copy().demo,50,1180,18,net==='tiktok'||t>5.6?'#f6ede6':'#342932',{weight:600,spacing:1});
+ ctx.restore();
+}
+// Incoming artwork is the real next Story, drawn by the existing renderer.
+// At 10s it covers the complete frame and continues from 600ms in the player/export.
+function transition(ctx,timeMs,incoming){
+ const p=between(timeMs,9400,10000);if(!p||!incoming)return;
+ if(p===1){incoming();return;}
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);const w=ctx.canvas.width,h=ctx.canvas.height;
+ ctx.beginPath();ctx.ellipse(w/2,h/2,p*Math.hypot(w,h)/2,p*Math.hypot(w,h)/2,0,0,Math.PI*2);ctx.clip();incoming();ctx.restore();
+}
+function stop(){session++;if(raf)cancelAnimationFrame(raf);raf=0}
+function attach(canvas,slide,elapsed,net,year,incoming){
+ stop();if(!canvas)return;const token=session,ctx=canvas.getContext('2d',{alpha:false});let last=-1;
+ if(!window.REEECAP_MOTION?.count)void window.REEECAP_MOTION?.ensure?.().catch(()=>{});
+ const run=()=>{if(token!==session||!canvas.isConnected)return;const t=elapsed();
+  // Paused frames stay still, including footage. The clock supplies full-resolution time.
+  if(t!==last){window.REEECAP_INTRO.draw(ctx,slide,t,net,year);transition(ctx,t,incoming?()=>incoming(ctx,t-9400):null);last=t;}
+  raf=requestAnimationFrame(run);
+ };run();
+}
+function measured(target,data,slide,ms,pct){
+ const ctx=metricLayer.getContext('2d');
+ const tik=data.platform==='tiktok',t=Math.max(0,ms/1000),s=ctx.canvas.width/W,cp=copy();
+ const bg=tik?'#0b1114':'#27131f',ink=tik?'#f3f5ed':'#fff4e8',accent=/^#[0-9a-f]{6}$/i.test(data.accent||'')?data.accent:tik?'#9df1df':'#e8b3bc';
+ ctx.save();ctx.setTransform(s,0,0,s,0,0);rect(ctx,0,0,W,H,bg);
+ const film=['likes','watched','reels'].includes(slide.metricKey);
+ if(film){
+  // The two real film strips leave an unobstructed field for the actual number.
+  [310,1064].forEach((y,row)=>{for(let j=-1;j<4;j++){
+   const x=j*238+((t*32*(row?-1:1))%238);
+   footage(ctx,(j+9+row)%4,[x,y,214,166,row?-.025:.025,.88],t);
+  }});
+ }else if(slide.metricKey==='comments'&&slide.comments?.length){
+  window.REEECAP_MOTION?.draw?.(ctx,slide,ms);
+  rect(ctx,0,0,W,H,bg+'b0');
+ }else if(slide.metricKey==='shares'){
+  window.REEECAP_MOTION?.draw?.(ctx,slide,ms);
+ }else{
+  // A single moving crop connects this page to the opening's image material.
+  footage(ctx,1,[tik?636:84,650,136,790,tik?.035:-.045,.6],t);
+ }
+ type(ctx,data.platform.toUpperCase(),50,166,22,ink,{spacing:3});
+ type(ctx,data.year,670,166,22,ink,{align:'right',spacing:1});
+ rect(ctx,50,207,620,1,tik?'#c4e2d532':'#29212825');
+ let value=String(slide.value||'');const reveal=between(t,0,.9);
+ if(['following','followers'].includes(slide.metricKey)&&/^[\d.,\s]+$/.test(value)){
+  const target=Number(value.replace(/\D/g,''));value=new Intl.NumberFormat(window.REEECAP_LANGUAGE?.()||'pt').format(Math.round(target*(1-Math.pow(1-clamp(ms/1550),4))));
+ }
+ ctx.save();ctx.beginPath();ctx.rect(42,425,636,330);ctx.clip();ctx.translate(0,(1-reveal)*200);
+ type(ctx,value,360,680,250,ink,{weight:tik?700:500,max:610,spacing:-7,align:'center'});ctx.restore();
+ // Only source-provided copy. No fabricated rankings, names or reactions.
+ const title=String(slide.title||slide.eyebrow||''),words=title.split(/\s+/);let lines=[''];
+ ctx.font='600 55px Arial,sans-serif';
+ for(const word of words){const i=lines.length-1,test=lines[i]?lines[i]+' '+word:word;
+  if(ctx.measureText(test).width>600&&lines[i])lines.push(word);else lines[i]=test;
+ }
+ lines.slice(0,3).forEach((line,i)=>type(ctx,line,50,812+i*66,55,accent,{weight:600,max:610}));
+ const body=String(slide.body||'');
+ ctx.font='400 25px Arial,sans-serif';let bodyLines=[''];
+ for(const word of body.split(/\s+/)){const i=bodyLines.length-1,test=bodyLines[i]?bodyLines[i]+' '+word:word;
+  if(ctx.measureText(test).width>590&&bodyLines[i])bodyLines.push(word);else bodyLines[i]=test;
+ }
+ bodyLines.slice(0,2).forEach((line,i)=>type(ctx,line,50,812+lines.slice(0,3).length*66+38+i*32,25,ink,{weight:400,max:610}));
+ rect(ctx,50,1112,620*clamp(pct),2,accent);
+ type(ctx,'REEECAP',50,1177,27,ink,{weight:700,spacing:-1});
+ type(ctx,data.demo?cp.demo:({pt:'SEUS REGISTROS · LEITURA LOCAL',en:'YOUR RECORDS · LOCAL PROCESSING',es:'TUS REGISTROS · ANÁLISIS LOCAL'}[window.REEECAP_LANGUAGE?.()||'pt']),50,1220,17,ink,{weight:500,spacing:1});
+ ctx.restore();
+ target.save();target.setTransform(1,0,0,1,0,0);target.drawImage(metricLayer,0,0,target.canvas.width,target.canvas.height);target.restore();
+}
+window.REEECAP_INTRO={draw,measured,transition,attach,stop,duration:10000,version:'6.4-continuous'};
 })();
