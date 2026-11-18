@@ -32,6 +32,7 @@ const opts = {
 let overlayHistoryOpen=false;
 const resultsByPlatform=new Map();
 let platform='instagram',current=null,year=null,stories=[],index=0,playing=false,tickId=null,elapsed=0,stepMs=7200,warning=[],backdropReady=false,backdropLayer=0,backdropTimer=null;
+let stopSharedStory=()=>{},clockLast=0;
 const metricInfo={likes:['♥','Curtidas','Interações registradas'],saved:['▣','Salvos / favoritos','Itens salvos registrados'],watched:['▷','Vídeos assistidos','Registros de visualização (não vídeos únicos)'],shares:['↗','Compartilhamentos','Ações de compartilhamento registradas'],comments:['✎','Comentários','Comentários registrados'],posts:['▧','Posts no feed','Posts identificados no feed'],reels:['◉','Reels publicados','Reels identificados'],storyPosts:['◎','Stories publicados','Stories publicados identificados'],stories:['◎','Interações em Stories','Interações identificadas'],following:['＋','Contas seguidas','Registros de seguir'],followers:['◎','Novos seguidores','Registros de seguidores'],searches:['⌕','Pesquisas','Buscas registradas'],downvotes:['−','Votos negativos','Votos negativos encontrados'],listens:['♫','Reproduções musicais','Registros de reprodução de faixas (inclui reproduções parciais)'],podcasts:['◉','Episódios reproduzidos','Registros de episódios identificados'],minutes:['◷','Minutos de reprodução','Tempo acumulado de áudio encontrado no arquivo, não tempo de tela']};
 function selectPlatform(next){
  if(!opts[next])return;
@@ -143,10 +144,20 @@ function renderStory(){
  const shell=document.querySelector('.recapop-shell');
  if(shell){shell.style.zIndex='2';shell.style.backgroundColor='transparent';}
  window.REEECAP_INTRO?.stop();
+ stopSharedStory();
+ elapsed=0;
  if(s.kind==='intro'&&['instagram','tiktok'].includes(platform)){
   window.REEECAP_MOTION?.stop?.();
   $('storyVisual').innerHTML='<canvas class="story-intro-canvas" id="storyIntroCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
-  window.REEECAP_INTRO?.attach($('storyIntroCanvas'),s,()=>elapsed,platform,year);
+  const snap=window.REEECAP_VIDEO_SNAPSHOT?.();
+  window.REEECAP_INTRO?.attach($('storyIntroCanvas'),{...s,demo:!!current?.demo},()=>elapsed,platform,year,(ctx,ms)=>{
+   if(snap?.stories[1])window.REEECAP_DRAW_STORY_FRAME?.(ctx,snap,snap.stories[1],ms/(storyDuration(snap.stories[1])+600),1,snap.stories.length,null,ms);
+  });
+ }else if((index===1||s.kind==='number')&&['instagram','tiktok'].includes(platform)&&window.REEECAP_ATTACH_STORY_FRAME){
+  window.REEECAP_MOTION?.stop?.();
+  $('storyVisual').innerHTML='<canvas class="story-render-canvas" id="storyMotionCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
+  const snap=window.REEECAP_VIDEO_SNAPSHOT();
+  stopSharedStory=window.REEECAP_ATTACH_STORY_FRAME($('storyMotionCanvas'),snap,snap.stories[index],()=>elapsed,index,snap.stories.length,storyDuration(s),index===1?600:0);
  }else{
   $('storyVisual').innerHTML='<canvas class="story-motion-canvas" id="storyMotionCanvas" width="720" height="1280" aria-hidden="true"></canvas>'+storyHTML(s);
   window.REEECAP_MOTION?.attach($('storyMotionCanvas'),s,()=>elapsed+calendarPeelBonus);
@@ -167,17 +178,33 @@ function renderStory(){
   requestAnimationFrame(()=>{incoming.style.opacity='1';});
   backdropTimer=setTimeout(()=>{outgoing.style.opacity='0';},730);backdropLayer=1-backdropLayer;
  }
- if(musicOn&&window.REEECAP_MUSIC5?.installed.includes(platform)&&ambientMusic.src.includes('reeecap-'+platform+'.mp3')){try{const point=window.REEECAP_MUSIC5.cue(index);if(Number.isFinite(point)&&point<ambientMusic.duration-1){ambientMusic.volume=.12;ambientMusic.currentTime=point;setTimeout(()=>{if(musicOn)ambientMusic.volume=.30},160);}}catch{}}
+ // Keep the supplied track continuous; a Story boundary is not a musical cue.
  $('storyCounter').textContent=(language()==='es'?'Historia ':'Story ')+(index+1)+(language()==='en'?' of ':' de ')+stories.length;
  $('storyProgress').innerHTML=stories.map((_,i)=>'<span><i style="width:'+(i<index?100:i===index?0:0)+'%"></i></span>').join('');
  elapsed=0;
 }
 let calendarPeelBonus=0;
 function storyDuration(slide){return slide?.kind==='intro'&&['instagram','tiktok'].includes(platform)?10000:slide?.kind==='days'?10500:slide?.metricKey==='comments'?11500:stepMs;}
-function stopClock(){clearInterval(tickId);tickId=null;}
+function stopClock(pauseMedia=true){if(tickId)cancelAnimationFrame(tickId);tickId=null;if(pauseMedia){ambientMusic.pause();window.REEECAP_MOTION?.pause?.();}}
 const pauseSvg='<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
 const playSvg='<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M8 4 20 12 8 20z"/></svg>';
-function startClock(){stopClock();playing=true;$('pauseStory').innerHTML=pauseSvg;tickId=setInterval(()=>{elapsed+=90;const bars=$('storyProgress').querySelectorAll('span i');const duration=storyDuration(stories[index]);if(bars[index])bars[index].style.width=Math.min(100,elapsed/duration*100)+'%';if(stories[index]?.kind==='days'&&elapsed+calendarPeelBonus>=7600)$('storyVisual')?.querySelector('.kind-days')?.classList.add('is-revealed');if(elapsed>=duration){if(index>=stories.length-1){playing=false;stopClock();$('pauseStory').innerHTML=playSvg;}else goStory(index+1);}},90);}
+function startClock(){
+ stopClock(false);playing=true;clockLast=performance.now();$('pauseStory').innerHTML=pauseSvg;
+ window.REEECAP_MOTION?.resume?.();if(musicOn)ambientMusic.play().catch(()=>{});
+ const advance=now=>{
+  if(!playing)return;
+  elapsed+=Math.max(0,now-clockLast);clockLast=now;
+  const bars=$('storyProgress').querySelectorAll('span i'),duration=storyDuration(stories[index]);
+  if(bars[index])bars[index].style.width=Math.min(100,elapsed/duration*100)+'%';
+  if(stories[index]?.kind==='days'&&elapsed+calendarPeelBonus>=7600)$('storyVisual')?.querySelector('.kind-days')?.classList.add('is-revealed');
+  if(elapsed>=duration){
+   if(index>=stories.length-1){playing=false;stopClock();$('pauseStory').innerHTML=playSvg;return;}
+   goStory(index+1);return;
+  }
+  tickId=requestAnimationFrame(advance);
+ };
+ tickId=requestAnimationFrame(advance);
+}
 function goStory(i){index=Math.min(Math.max(i,0),stories.length-1);calendarPeelBonus=0;renderStory();if(playing)startClock();}
 function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropReady=false;buildStories();index=0;calendarPeelBonus=0;renderStory();$('recapopOverlay').classList.remove('hidden');document.body.style.overflow='hidden';if(!overlayHistoryOpen){try{history.pushState({reeecapOverlay:true},'',location.pathname+location.search+'#recap');overlayHistoryOpen=true;}catch{overlayHistoryOpen=false;}}startClock();
  if(!window.REEECAP_MUSIC_FILE&&['instagram','tiktok'].includes(platform)){
@@ -186,7 +213,7 @@ function openRecap(){if(!current)return;clearTimeout(backdropTimer);backdropRead
    ambientMusic.play().then(()=>{musicOn=true;const btn=$('musicToggle');btn?.setAttribute('aria-pressed','true');btn?.classList.add('sound-on');}).catch(()=>{musicOn=false;const btn=$('musicToggle');btn?.setAttribute('aria-pressed','false');btn?.classList.remove('sound-on');});}
  }
 }
-function closeRecap(){window.REEECAP_INTRO?.stop?.();window.REEECAP_MOTION?.stop?.();window.REEECAP_MOTION?.pause?.();ambientMusic.pause();musicOn=false;const m=$('musicToggle');if(m){m.setAttribute('aria-pressed','false');m.classList.remove('sound-on');}clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(current?.demo&&resultsByPlatform.has(platform)){current=resultsByPlatform.get(platform);const years=[...new Set(current.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].sort((a,b)=>b-a);year=years[0]||new Date().getUTCFullYear();}updateResume();if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
+function closeRecap(){stopSharedStory();window.REEECAP_INTRO?.stop?.();window.REEECAP_MOTION?.stop?.();window.REEECAP_MOTION?.pause?.();ambientMusic.pause();musicOn=false;const m=$('musicToggle');if(m){m.setAttribute('aria-pressed','false');m.classList.remove('sound-on');}clearTimeout(backdropTimer);stopClock();playing=false;$('recapopOverlay').classList.add('hidden');document.body.style.overflow='';if(current?.demo&&resultsByPlatform.has(platform)){current=resultsByPlatform.get(platform);const years=[...new Set(current.events.filter(e=>e.time).map(e=>new Date(e.time).getUTCFullYear()))].sort((a,b)=>b-a);year=years[0]||new Date().getUTCFullYear();}updateResume();if(overlayHistoryOpen){overlayHistoryOpen=false;if(history.state?.reeecapOverlay)history.back();}}
 function makeCharts(s){
  const max=Math.max(1,...s.months);const names=Array.from({length:12},(_,i)=>new Date(Date.UTC(2026,i,1)).toLocaleDateString(dateLocale(),{month:'short',timeZone:'UTC'}).replace('.',''));
  $('monthChart').innerHTML=s.months.map((v,i)=>'<div class="month-col"><strong>'+fmt(v)+'</strong><div class="month-bar" style="height:'+Math.max(2,v/max*170)+'px"></div><span>'+names[i]+'</span></div>').join('');
@@ -318,6 +345,7 @@ function setupStoryHold(){
  }
 }
 
+window.REEECAP_PAUSE_STORY=()=>{playing=false;stopClock();$('pauseStory').innerHTML=playSvg;};
 window.REEECAP_VIDEO_SNAPSHOT=()=>({platform,year,stories:stories.map(s=>({kind:s.kind,metricKey:s.metricKey||null,title:s.title,value:s.value||'',body:s.body,eyebrow:s.eyebrow,color:s.color,activeDays:s.activeDays||0,comments:s.metricKey==='comments'?(s.comments||getComments().map(e=>e.label).slice(0,30)):undefined})),demo:!!current?.demo});
 let musicOn=false;
 const ambientMusic=new Audio();ambientMusic.loop=true;ambientMusic.volume=.30;ambientMusic.preload='none';let localTrackUrl=null;

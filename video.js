@@ -3,6 +3,9 @@
 const $=id=>document.getElementById(id);
 const esc=t=>String(t??'');
 let dialog=null,busy=false,abortCurrent=null,shareFile=null,previewLogo=null;
+let previewTask=0;
+const accentChoices=new Map();
+const storyLogo=new Image();storyLogo.crossOrigin='anonymous';storyLogo.src='./assets/reeecap-logo-3.png';
 const getLanguage=()=>window.REEECAP_LANGUAGE?.()||'pt';
 const copy={pt:{title:'Seu recap em vídeo.',desc:'Um vídeo vertical 9:16 pronto para compartilhar. Apenas os dados que você escolher ficam no arquivo.',resolution:'Qualidade do vídeo',speed:'Ritmo dos Stories',track:'Incluir música escolhida',go:'Gerar vídeo',share:'Compartilhar vídeo',close:'Fechar',wait:'Preparando…',progress:'Gravando',done:'Exportação concluída',unsupported:'Este navegador não consegue gravar vídeo. Use um navegador atualizado.',fallback:'Seu navegador não oferece MP4 direto; o resultado será WebM.',cancel:'Cancelar gravação',saved:'Arquivo salvo no dispositivo.',select:'Escolha os Stories',selectAll:'Marcar todos',selectNone:'Desmarcar todos',chosen:'selecionados',ownTrack:'Usar música do meu aparelho',ownNote:'Arquivo de áudio local (máx. 25 MB). Não é enviado ao REEECAP.',preview:'Prévia do primeiro Story',needOne:'Escolha pelo menos um Story.',volume:'Volume da trilha'},en:{title:'Your recap, on video.',desc:'A vertical 9:16 video designed for sharing. Only the selected data appears in the export.',resolution:'Video quality',speed:'Story pacing',track:'Include selected soundtrack',go:'Create video',share:'Share video',close:'Close',wait:'Preparing…',progress:'Recording',done:'Export complete',unsupported:'This browser cannot record video. Try an updated browser.',fallback:'Direct MP4 is not supported here. Video will be saved as WebM.',cancel:'Cancel recording',saved:'File saved on device.',select:'Choose your Stories',selectAll:'Select all',selectNone:'Clear',chosen:'selected',ownTrack:'Use audio from my device',ownNote:'Local audio only (max. 25 MB). Never uploaded.',preview:'Preview of the first Story',needOne:'Choose at least one Story.',volume:'Soundtrack volume'},es:{title:'Tu recap en vídeo.',desc:'Vídeo vertical 9:16 para compartir, sin subir datos a ningún servidor.',resolution:'Calidad de vídeo',speed:'Duración de cada historia',track:'Incluir música selecionada',go:'Crear vídeo',share:'Compartir vídeo',close:'Cerrar',wait:'Preparando…',progress:'Grabando',done:'Exportación finalizada',unsupported:'Este navegador no puede grabar vídeo. Prueba un navegador actualizado.',fallback:'Este navegador no permite MP4 directo. Se guardará un WebM.',cancel:'Cancelar grabación',saved:'Archivo guardado en tu dispositivo.',select:'Elige tus historias',selectAll:'Seleccionar todas',selectNone:'Desmarcar',chosen:'seleccionadas',ownTrack:'Usar música de mi dispositivo',ownNote:'Audio local (máx. 25 MB). No se sube.',preview:'Vista previa de la primera historia',needOne:'Elige al menos una historia.',volume:'Volumen de música'}};
 function tr(){return copy[getLanguage()]||copy.pt;}
@@ -44,10 +47,15 @@ function ornaments(ctx,slide,ms,ink="#fff"){
  }
  ctx.restore();
 }
-function frame(ctx,data,slide,pct,idx,total,logo,ms){
+function frame(ctx,data,slide,pct,idx,total,logo,ms,nextSlide=null,nextDuration=7200){
+ logo=logo||storyLogo;
  if(slide.kind==='intro'&&['instagram','tiktok'].includes(data.platform)&&window.REEECAP_INTRO){
-  window.REEECAP_INTRO.draw(ctx,slide,ms,data.platform,data.year);
+  window.REEECAP_INTRO.draw(ctx,{...slide,demo:data.demo},ms,data.platform,data.year);
+  window.REEECAP_INTRO.transition?.(ctx,ms,nextSlide?()=>frame(ctx,data,nextSlide,(ms-9400)/(nextDuration+600),idx+1,total,logo,ms-9400):null);
   return;
+ }
+ if(['instagram','tiktok'].includes(data.platform)&&slide.kind==='number'&&(!data.theme||data.theme==='neon')&&window.REEECAP_INTRO?.measured){
+  window.REEECAP_INTRO.measured(ctx,data,slide,ms,pct);return;
  }
  const w=ctx.canvas.width,h=ctx.canvas.height,s=w/720,sw=w/s,sh=h/s;
  ctx.setTransform(s,0,0,s,0,0);ctx.clearRect(0,0,sw,sh);
@@ -91,12 +99,22 @@ function frame(ctx,data,slide,pct,idx,total,logo,ms){
  ctx.fillStyle=theme==='paper'?'#00000030':'#ffffff33';ctx.fillRect(margin,1157,624,1);
  ctx.fillStyle=theme==='paper'?'#16131a':'#ffffffe8';ctx.font='700 22px system-ui,sans-serif';ctx.fillText('REEECAP · RECAP EVERYTHING',margin,1198);
  ctx.fillStyle=theme==='paper'?'#423a42':'#ffffffa9';ctx.font='500 18px system-ui,sans-serif';ctx.fillText(data.demo?({pt:'DEMO · DADOS FICTÍCIOS',en:'DEMO · FICTIONAL DATA',es:'DEMO · DATOS FICTICIOS'}[getLanguage()]):({pt:'Dados exportados pelo usuário · Processamento local',en:'User-exported data · Local processing',es:'Datos exportados por el usuario · Análisis local'}[getLanguage()]),margin,1235);
- if(idx<total-1&&pct>.86){ctx.fillStyle=theme==='paper'?'#f7f3ea':'#0a0910';ctx.globalAlpha=Math.min(1,(pct-.86)/.14);ctx.fillRect(0,0,sw,sh);ctx.globalAlpha=1;}
+ const openingStory=idx===1&&['instagram','tiktok'].includes(data.platform)&&data.stories?.[0]?.kind==='intro';
+ if(!openingStory&&idx<total-1&&pct>.86){ctx.fillStyle=theme==='paper'?'#f7f3ea':'#0a0910';ctx.globalAlpha=Math.min(1,(pct-.86)/.14);ctx.fillRect(0,0,sw,sh);ctx.globalAlpha=1;}
+}
+
+// Same first measured Story renderer as the export, including the 600ms lead-in.
+function attachStory(canvas,data,slide,elapsed,idx,total,duration,lead=0){
+ const ctx=canvas.getContext('2d',{alpha:false});let raf=0,active=true,last=-1;
+ const draw=()=>{if(!active||!canvas.isConnected)return;const ms=elapsed();
+  if(ms!==last){frame(ctx,data,slide,Math.min(1,(ms+lead)/(duration+lead)),idx,total,null,ms+lead);last=ms;}
+  raf=requestAnimationFrame(draw);
+ };draw();return ()=>{active=false;cancelAnimationFrame(raf)};
 }
 
 function ensureDialog(){if(dialog)return dialog;
  dialog=document.createElement('dialog');dialog.id='videoComposer';dialog.className='video-dialog';
- dialog.innerHTML='<div class="dialog-content"><button class="dialog-close" id="videoDialogClose" type="button" aria-label="Fechar">✕</button><div class="premium-mark">REEECAP <span>VIDEO STUDIO</span></div><h2 id="videoComposerTitle"></h2><p id="videoComposerDesc"></p><div class="video-layout"><div class="video-options"><div class="video-field"><label for="videoTheme" id="videoThemeLabel">Estilo visual</label><select id="videoTheme"><option value="neon">Neon Motion · Luzes e formas</option><option value="noir">Noir Editorial · Preto e tipografia</option><option value="paper">Paper Cut · Colagem e papel</option></select></div><div class="video-field"><label for="videoAccent" id="videoAccentLabel">Cor de destaque</label><input id="videoAccent" type="color" value="#fd347b" aria-label="Cor de destaque"></div><div class="video-field"><label id="videoQualityLabel" for="videoQuality"></label><select id="videoQuality"><option value="720">HD · 720 × 1280 (mais leve)</option><option value="1080">Full HD · 1080 × 1920</option></select></div><div class="video-field"><label id="videoSpeedLabel" for="videoSpeed"></label><select id="videoSpeed"><option value="2400">Dinâmico · 2,4 s</option><option value="3400">Cinematográfico · 3,4 s</option><option value="4800">Contemplativo · 4,8 s</option></select></div><div class="video-field"><label class="video-check" for="videoAudio"><input id="videoAudio" type="checkbox" checked><span id="videoAudioLabel"></span></label></div><div class="video-field custom-track"><label class="video-check" for="videoCustomEnabled"><input id="videoCustomEnabled" type="checkbox"><span id="videoCustomLabel"></span></label><input id="videoCustomFile" type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" ><small id="videoCustomNote"></small></div><div class="video-field"><label for="videoReelFiles">Vídeos reais de fundo · alterar (opcional)</label><input id="videoReelFiles" type="file" accept="video/*,.mp4,.mov,.webm,.m4v" multiple><small id="videoReelsStatus">Clipes licenciados aparecem automaticamente; seus vídeos têm prioridade quando selecionados.</small><small><a href="./videos-e-creditos.html" target="_blank" rel="noopener noreferrer">Ver autores, licenças e créditos dos 12 vídeos reais</a> · inclua os créditos ao publicar vídeos com material CC BY.</small></div><div class="video-field"><label id="videoVolumeLabel" for="videoVolume"></label><input id="videoVolume" type="range" min="0" max="100" value="35" step="5"></div></div><aside class="video-preview-panel"><span id="videoPreviewLabel"></span><canvas id="videoPreviewCanvas" width="360" height="640" aria-label="Prévia vertical"></canvas></aside></div><div class="video-slides-header"><strong id="videoChooseLabel"></strong><span id="videoSlideCount"></span></div><div class="video-selection-actions"><button id="videoAll" type="button"></button><button id="videoNone" type="button"></button></div><div class="video-story-select" id="videoStorySelect" role="group" aria-label="Escolha os Stories do vídeo"></div><button type="button" class="video-start" id="videoStart"></button><div class="video-progress" role="progressbar" aria-label="Progresso" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="videoProgressFill"></span></div><p class="video-msg" id="videoComposerMsg" aria-live="polite"></p><button type="button" class="video-share" id="videoShare"></button><div class="reeecap-music-library"><strong>Trilha cinematográfica · REEECAP Originals</strong><p>Instagram e TikTok terão composições diferentes, com capítulos musicais para cada Story. Trilhas originais integradas. Os primeiros 10 segundos acompanham a abertura cinematográfica.</p><div class="reeecap-music-options"><label><input name="reeecapSoundtrack" type="radio" value="instagram" checked> Moments in Motion · Instagram</label><label><input name="reeecapSoundtrack" type="radio" value="tiktok"> Infinite Replay · TikTok</label></div><button id="reeecapPreviewSoundtrack" type="button">Ouvir trilha</button><small id="audioAvailability">Trilhas aguardando os arquivos finais e autorização de distribuição.</small></div><p class="video-subtle">Privacidade: o arquivo permanece no seu aparelho. Para músicas externas, inclua os créditos do artista na postagem.</p></div>';
+ dialog.innerHTML='<div class="dialog-content"><button class="dialog-close" id="videoDialogClose" type="button" aria-label="Fechar">✕</button><div class="premium-mark">REEECAP <span>VIDEO STUDIO</span></div><h2 id="videoComposerTitle"></h2><p id="videoComposerDesc"></p><div class="video-layout"><div class="video-options"><div class="video-field"><label for="videoTheme" id="videoThemeLabel">Estilo visual</label><select id="videoTheme"><option value="neon">Neon Motion · Luzes e formas</option><option value="noir">Noir Editorial · Preto e tipografia</option><option value="paper">Paper Cut · Colagem e papel</option></select></div><div class="video-field"><label for="videoAccent" id="videoAccentLabel">Cor de destaque</label><input id="videoAccent" type="color" value="#fd347b" aria-label="Cor de destaque"></div><div class="video-field"><label id="videoQualityLabel" for="videoQuality"></label><select id="videoQuality"><option value="720">HD · 720 × 1280 (mais leve)</option><option value="1080">Full HD · 1080 × 1920</option></select></div><div class="video-field"><label id="videoSpeedLabel" for="videoSpeed"></label><select id="videoSpeed"><option value="7200" selected>Original - 7,2 s</option><option value="2400">Dinâmico · 2,4 s</option><option value="3400">Cinematográfico · 3,4 s</option><option value="4800">Contemplativo · 4,8 s</option></select></div><div class="video-field"><label class="video-check" for="videoAudio"><input id="videoAudio" type="checkbox" checked><span id="videoAudioLabel"></span></label></div><div class="video-field custom-track"><label class="video-check" for="videoCustomEnabled"><input id="videoCustomEnabled" type="checkbox"><span id="videoCustomLabel"></span></label><input id="videoCustomFile" type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" ><small id="videoCustomNote"></small></div><div class="video-field"><label for="videoReelFiles">Vídeos reais de fundo · alterar (opcional)</label><input id="videoReelFiles" type="file" accept="video/*,.mp4,.mov,.webm,.m4v" multiple><small id="videoReelsStatus">Clipes licenciados aparecem automaticamente; seus vídeos têm prioridade quando selecionados.</small><small><a href="./videos-e-creditos.html" target="_blank" rel="noopener noreferrer">Ver autores, licenças e créditos dos 12 vídeos reais</a> · inclua os créditos ao publicar vídeos com material CC BY.</small></div><div class="video-field"><label id="videoVolumeLabel" for="videoVolume"></label><input id="videoVolume" type="range" min="0" max="100" value="35" step="5"></div></div><aside class="video-preview-panel"><span id="videoPreviewLabel"></span><canvas id="videoPreviewCanvas" width="360" height="640" aria-label="Prévia vertical"></canvas></aside></div><div class="video-slides-header"><strong id="videoChooseLabel"></strong><span id="videoSlideCount"></span></div><div class="video-selection-actions"><button id="videoAll" type="button"></button><button id="videoNone" type="button"></button></div><div class="video-story-select" id="videoStorySelect" role="group" aria-label="Escolha os Stories do vídeo"></div><button type="button" class="video-start" id="videoStart"></button><div class="video-progress" role="progressbar" aria-label="Progresso" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="videoProgressFill"></span></div><p class="video-msg" id="videoComposerMsg" aria-live="polite"></p><button type="button" class="video-share" id="videoShare"></button><div class="reeecap-music-library"><strong>Trilha cinematográfica · REEECAP Originals</strong><p>Instagram e TikTok terão composições diferentes, com capítulos musicais para cada Story. Trilhas originais integradas. Os primeiros 10 segundos acompanham a abertura cinematográfica.</p><div class="reeecap-music-options"><label><input name="reeecapSoundtrack" type="radio" value="instagram" checked> Moments in Motion · Instagram</label><label><input name="reeecapSoundtrack" type="radio" value="tiktok"> Infinite Replay · TikTok</label></div><button id="reeecapPreviewSoundtrack" type="button">Ouvir trilha</button><small id="audioAvailability">Trilhas aguardando os arquivos finais e autorização de distribuição.</small></div><p class="video-subtle">Privacidade: o arquivo permanece no seu aparelho. Para músicas externas, inclua os créditos do artista na postagem.</p></div>';
  document.body.append(dialog);
  $('videoCustomFile').disabled=true; $('videoCustomEnabled').addEventListener('change',()=>{$('videoCustomFile').disabled=!$('videoCustomEnabled').checked;});
  $('videoAudio').addEventListener('change',()=>{const choice=mimeChoice($('videoAudio').checked);message(choice?.includes('webm')?tr().fallback:'');});
@@ -104,10 +122,10 @@ function ensureDialog(){if(dialog)return dialog;
  $('videoCustomFile').addEventListener('change',()=>{if($('videoCustomFile').files?.length){$('videoAudio').checked=true;$('videoCustomEnabled').checked=true;message('Trilha selecionada: '+$('videoCustomFile').files[0].name);}});
  const previewAudio=new Audio();previewAudio.preload='none';previewAudio.volume=.48;
  $('reeecapPreviewSoundtrack').addEventListener('click',async()=>{const b=$('reeecapPreviewSoundtrack');if(!previewAudio.paused){previewAudio.pause();b.textContent='Ouvir trilha';return;}const uri=window.REEECAP_MUSIC5?.src(dialog.querySelector('input[name=reeecapSoundtrack]:checked')?.value);if(!uri){message('A música original ainda não foi incluída no pacote.');return;}previewAudio.src=uri;try{await previewAudio.play();b.textContent='Pausar';}catch{message('Esta trilha não está disponível neste navegador.');}});
- dialog.addEventListener('close',()=>{previewAudio.pause();});
+ dialog.addEventListener('close',()=>{previewAudio.pause();cancelAnimationFrame(previewTask);});
  dialog.querySelectorAll('input[name=reeecapSoundtrack]').forEach(r=>r.addEventListener('change',()=>{window.REEECAP_MUSIC5?.choose(r.value);previewAudio.pause();$('reeecapPreviewSoundtrack').textContent='Ouvir trecho';}));
  $('videoStorySelect').addEventListener('change',updateSelection);
- $('videoTheme').addEventListener('change',updateSelection);$('videoAccent').addEventListener('input',updateSelection);document.addEventListener('reeecap:clips',()=>{if(dialog?.open)updateSelection();});
+ $('videoTheme').addEventListener('change',updateSelection);$('videoAccent').addEventListener('input',()=>{const platform=window.REEECAP_VIDEO_SNAPSHOT?.()?.platform;if(platform)accentChoices.set(platform,$('videoAccent').value);updateSelection();});$('videoSpeed').addEventListener('change',updateSelection);document.addEventListener('reeecap:clips',()=>{if(dialog?.open)updateSelection();});
  $('videoAll').addEventListener('click',()=>{dialog.querySelectorAll('.video-story-select input').forEach(x=>x.checked=true);updateSelection();});
  $('videoNone').addEventListener('click',()=>{dialog.querySelectorAll('.video-story-select input').forEach(x=>x.checked=false);updateSelection();});
  $('videoDialogClose').addEventListener('click',()=>{if(busy){abortCurrent?.();}else dialog.close();});
@@ -122,16 +140,26 @@ function chosenSlides(){const snapshot=window.REEECAP_VIDEO_SNAPSHOT?.();return 
 function updateSelection(){const chosen=chosenSlides(),t=tr();$('videoSlideCount').textContent=`${chosen.length} / ${$('videoStorySelect').querySelectorAll('input').length} ${t.chosen}`;
  $('videoStart').disabled=!chosen.length||busy;
  const d=window.REEECAP_VIDEO_SNAPSHOT?.();if(!d?.stories?.length)return;
- const c=$('videoPreviewCanvas'),ctx=c.getContext('2d');if(ctx){const first=chosen[0]||d.stories[0];d.theme=$('videoTheme').value;d.accent=$('videoAccent').value;frame(ctx,d,first,.55,0,chosen.length||1,previewLogo,750);}
+ const c=$('videoPreviewCanvas'),ctx=c.getContext('2d');cancelAnimationFrame(previewTask);
+ if(ctx){
+  const first=chosen[0]||d.stories[0],next=chosen[1],count=chosen.length||1,pace=Number($('videoSpeed').value)||7200;
+  d.theme=$('videoTheme').value;d.accent=$('videoAccent').value;
+  const duration=first.kind==='intro'&&['instagram','tiktok'].includes(d.platform)?10000:pace,start=performance.now();
+  const preview=()=>{if(!dialog?.open||busy)return;const ms=(performance.now()-start)%duration;
+   frame(ctx,d,first,ms/duration,0,count,previewLogo,ms,next,pace);previewTask=requestAnimationFrame(preview);
+  };frame(ctx,d,first,0,0,count,previewLogo,0,next,pace);previewTask=requestAnimationFrame(preview);
+ }
 }
 function show(){if(!window.REEECAP_VIDEO_SNAPSHOT?.()?.stories?.length){const el=$('videoStatus');if(el)el.textContent='Abra uma retrospectiva primeiro.';return;}ensureDialog();
+ window.REEECAP_PAUSE_STORY?.();window.REEECAP_MOTION?.resume?.();
  const t=tr();$('videoComposerTitle').textContent=t.title;$('videoComposerDesc').textContent=t.desc;$('videoQualityLabel').textContent=t.resolution;$('videoSpeedLabel').textContent=t.speed;$('videoAudioLabel').textContent=t.track;$('videoStart').textContent=t.go;$('videoShare').textContent=t.share;
  $('videoChooseLabel').textContent=t.select;$('videoAll').textContent=t.selectAll;$('videoNone').textContent=t.selectNone;
  $('videoCustomLabel').textContent=t.ownTrack;$('videoCustomNote').textContent=t.ownNote;$('videoVolumeLabel').textContent=t.volume;$('videoPreviewLabel').textContent=t.preview;
  $('videoThemeLabel').textContent=({pt:'Estilo visual',en:'Visual style',es:'Estilo visual'})[getLanguage()];$('videoAccentLabel').textContent=({pt:'Cor de destaque',en:'Accent color',es:'Color de acento'})[getLanguage()];
  const snap=window.REEECAP_VIDEO_SNAPSHOT();
+ $('videoAccent').value=accentChoices.get(snap.platform)||(snap.platform==='tiktok'?'#9df1df':snap.platform==='instagram'?'#e8b3bc':'#fd347b');
  $('videoStorySelect').innerHTML=snap.stories.map((s,i)=>`<label class="video-story-option"><input type="checkbox" data-index="${i}" checked><span class="video-slide-no">${String(i+1).padStart(2,'0')}</span><span class="video-slide-name">${String(s.title||s.eyebrow||'Story').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}</span></label>`).join('');
- if(!previewLogo){previewLogo=new Image();previewLogo.src='./assets/reeecap-logo-3.png';previewLogo.onload=updateSelection;}
+ if(!previewLogo){previewLogo=new Image();previewLogo.crossOrigin='anonymous';previewLogo.src='./assets/reeecap-logo-3.png';previewLogo.onload=updateSelection;}
  const requested=['instagram','tiktok'].includes(snap.platform)?snap.platform:'instagram';const radio=dialog.querySelector('input[name=reeecapSoundtrack][value="'+requested+'"]');if(radio)radio.checked=true;
  const installed=window.REEECAP_MUSIC5?.installed||[];const bundled=installed.includes(requested);$('videoAudio').checked=bundled||!!window.REEECAP_MUSIC_FILE;$('audioAvailability').textContent=bundled?'Trilha original instalada localmente.':'A música original ainda não foi instalada; exportação sem áudio continua disponível.';
  updateSelection();if(window.REEECAP_MUSIC_FILE){$('videoAudio').checked=true;$('videoCustomEnabled').checked=true;$('videoCustomNote').textContent='Trilha escolhida no Story: '+window.REEECAP_MUSIC_FILE.name;}
@@ -141,40 +169,55 @@ function show(){if(!window.REEECAP_VIDEO_SNAPSHOT?.()?.stories?.length){const el
 }
 async function record(){const snapshot=window.REEECAP_VIDEO_SNAPSHOT?.();if(!snapshot?.stories?.length)return;
  snapshot.stories=chosenSlides();snapshot.theme=$('videoTheme').value;snapshot.accent=$('videoAccent').value;if(!snapshot.stories.length){message(tr().needOne);return;}
- if(snapshot.stories.some(s=>['likes','watched','reels'].includes(s.metricKey))){message('Carregando clipes reais do rolo de filme…');const clips=await window.REEECAP_MOTION.ensure();if(!clips){message('Os vídeos do pacote não puderam ser carregados. Confira se assets/videos foi publicado corretamente. Nenhum vídeo falso será exportado.');return;}}
+ if(snapshot.stories.some(s=>s.kind==='intro'||['likes','watched','reels'].includes(s.metricKey))){message('Carregando clipes reais do rolo de filme…');const clips=await window.REEECAP_MOTION.ensure();if(!clips){message('Os vídeos do pacote não puderam ser carregados. Confira se assets/videos foi publicado corretamente. Nenhum vídeo falso será exportado.');return;}}
  const type=mimeChoice($('videoAudio').checked);if(!type||!HTMLCanvasElement.prototype.captureStream){message(tr().unsupported);return;}
  busy=true;const button=$('videoStart');button.textContent=tr().cancel;const original=$('downloadVideo');if(original)original.disabled=true;
- const width=Number($('videoQuality').value)||720,quality=width===1080?1080:720,msPerSlide=Number($('videoSpeed').value)||2400,n=snapshot.stories.length;
+ const width=Number($('videoQuality').value)||720,quality=width===1080?1080:720,msPerSlide=Number($('videoSpeed').value)||7200,n=snapshot.stories.length;
  const times=snapshot.stories.map(s=>s.kind==='intro'&&['instagram','tiktok'].includes(snapshot.platform)?10000:Math.round(msPerSlide*(s.kind==='days'?2.7:s.metricKey==='comments'?3.2:1)));
  const edges=[0];for(const time of times)edges.push(edges[edges.length-1]+time);const duration=edges[n];
  const canvas=document.createElement('canvas');canvas.width=quality;canvas.height=Math.round(quality*16/9);
  const ctx=canvas.getContext('2d',{alpha:false});if(!ctx){message('Canvas indisponível.');finish();return;}
- const logo=new Image();logo.src='./assets/reeecap-logo-3.png';try{await Promise.race([logo.decode().catch(()=>{}),new Promise(r=>setTimeout(r,900))]);}catch{}
+ const logo=new Image();logo.crossOrigin='anonymous';logo.src='./assets/reeecap-logo-3.png';try{await Promise.race([logo.decode().catch(()=>{}),new Promise(r=>setTimeout(r,900))]);}catch{}
  // Do not silently export a muted video when the user explicitly selected their own soundtrack.
  const customEnabled=$('videoAudio').checked;
  const selectedAudio=customEnabled&&$('videoCustomEnabled').checked?($('videoCustomFile').files?.[0]||window.REEECAP_MUSIC_FILE):null;
  const builtInSrc=window.REEECAP_MUSIC5?.src(dialog.querySelector('input[name=reeecapSoundtrack]:checked')?.value)||'';
  if(customEnabled&&!selectedAudio&&!builtInSrc){message('Trilha selecionada indisponível.');finish();return;}
  if(selectedAudio?.size>25*1024*1024){message(tr().trackTooLarge||'O áudio deve ter no máximo 25 MB.');finish();return;}
- const stream=canvas.captureStream(30);let audio=null,actx=null,cleaned=false,shouldSave=true,recorder=null,interval=null,audioGain=null;let lastCue=-1;const sectioned=!!builtInSrc&&!selectedAudio&&/reeecap-(instagram|tiktok)\.mp3/.test(builtInSrc);
- function clean(){if(cleaned)return;cleaned=true;clearInterval(interval);audio?.pause();if(audio?.dataset.localUrl)URL.revokeObjectURL(audio.dataset.localUrl);stream.getTracks().forEach(t=>t.stop());actx?.close().catch(()=>{});finish();}
+ // Measure the actual renderer before selecting the capture target.
+ const costs=[];for(let i=0;i<12;i++){const before=performance.now();frame(ctx,snapshot,snapshot.stories[0],0,0,n,logo,i*1000/60,snapshot.stories[1],times[1]);costs.push(performance.now()-before);}
+ costs.sort((a,b)=>a-b);const targetFps=costs[Math.floor(costs.length*.9)]<11?60:30;
+ const metrics={targetFps,renderCostP90:costs[Math.floor(costs.length*.9)],renderedFrames:0,lateFrames:0,durationMs:duration};
+ message(`${tr().progress} - ${targetFps} FPS`);
+ const stream=new MediaStream();let audio=null,actx=null,cleaned=false,shouldSave=true,recorder=null,interval=null,stopTimer=null;
+ function clean(){if(cleaned)return;cleaned=true;cancelAnimationFrame(interval);clearTimeout(stopTimer);try{audio?.stop();}catch{}stream.getTracks().forEach(t=>t.stop());actx?.close().catch(()=>{});finish();}
  abortCurrent=()=>{shouldSave=false;try{if(recorder?.state==='recording')recorder.stop();else clean();}catch{clean();}message('Gravação cancelada.');};
  if($('videoAudio').checked){try{
   actx=new (window.AudioContext||window.webkitAudioContext)();
-  const custom=selectedAudio;
-  const customUrl=custom?URL.createObjectURL(custom):null;
-  audio=new Audio();audio.crossOrigin=customUrl?'':'anonymous';audio.src=customUrl||builtInSrc;audio.loop=true;audio.preload='auto';
-  audio.volume=1;
-  const from=actx.createMediaElementSource(audio),dest=actx.createMediaStreamDestination(),gain=actx.createGain();gain.gain.value=Math.max(0,Math.min(1,Number($('videoVolume').value)/100));
-  audioGain=gain;from.connect(gain);gain.connect(dest);for(const track of dest.stream.getAudioTracks())stream.addTrack(track);
-  audio.dataset.localUrl=customUrl||'';
-  await actx.resume();await audio.play();
+  // Decode before capture. A scheduled Web Audio source avoids the loading
+  // silence and independent clock introduced by a streaming media element.
+  const bytes=selectedAudio?await selectedAudio.arrayBuffer():await fetch(builtInSrc).then(r=>{if(!r.ok)throw new Error('Audio unavailable');return r.arrayBuffer();});
+  const decoded=await actx.decodeAudioData(bytes);
+  if(cleaned)return;
+  audio=actx.createBufferSource();audio.buffer=decoded;audio.loop=true;
+  await actx.resume();
+  const dest=actx.createMediaStreamDestination(),gain=actx.createGain();gain.gain.value=Math.max(0,Math.min(1,Number($('videoVolume').value)/100));
+  audio.connect(gain);gain.connect(dest);for(const track of dest.stream.getAudioTracks())stream.addTrack(track);
+  metrics.decodedAudioBytes=decoded.length*decoded.numberOfChannels*4;
  }catch{message(getLanguage()==='en'?'Audio playback failed; no video was saved.':getLanguage()==='es'?'El audio no pudo reproducirse; no se guardó ningún vídeo.':'Não foi possível reproduzir a música. Nenhum vídeo foi salvo.');clean();return;}}
+ let capture=canvas.captureStream(0),captureTrack=capture.getVideoTracks()[0];
+ // Capture the completed composition once per timeline step. A separate
+ // capture timer can sample between canvas layers and miss otherwise ready frames.
+ if(typeof captureTrack?.requestFrame!=='function'){
+  capture.getTracks().forEach(track=>track.stop());capture=canvas.captureStream(targetFps);captureTrack=capture.getVideoTracks()[0];
+ }
+ stream.addTrack(captureTrack);
  const segments=[];
- try{recorder=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:quality===1080?5300000:2600000});}catch(err){clean();throw err;}
+ try{recorder=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:quality===1080?10000000:6000000});}catch(err){clean();throw err;}
  recorder.ondataavailable=e=>{if(e.data?.size)segments.push(e.data);};
  recorder.onerror=()=>{shouldSave=false;message('A gravação falhou neste dispositivo.');try{recorder.stop();}catch{clean();}};
  recorder.onstop=()=>{
+  document.dispatchEvent(new CustomEvent('reeecap:video-metrics',{detail:metrics}));
   clean();if(!shouldSave)return;
   if(!segments.length){message('Nenhum dado de vídeo foi gerado.');return;}
   const mime=type.includes('mp4')?'video/mp4':'video/webm',ext=mime.includes('mp4')?'mp4':'webm';const blob=new Blob(segments,{type:mime});const file=new File([blob],`REEECAP-${snapshot.platform}-${snapshot.year}-${n}stories.${ext}`,{type:mime});shareFile=file;
@@ -183,16 +226,25 @@ async function record(){const snapshot=window.REEECAP_VIDEO_SNAPSHOT?.();if(!sna
   if(navigator.canShare?.({files:[file]}))$('videoShare').classList.add('available');
  };
  const start=performance.now();frame(ctx,snapshot,snapshot.stories[0],0,0,n,logo,0);
- try{recorder.start(500);}catch(err){clean();throw err;}
- interval=setInterval(()=>{
+ try{recorder.start(500);audio?.start();captureTrack.requestFrame?.();}catch(err){shouldSave=false;try{recorder.stop();}catch{}clean();throw err;}
+ let lastPaint=-Infinity;const paint=()=>{
   if(!recorder||recorder.state==='inactive')return;
-  const passed=performance.now()-start;let idx=edges.findIndex((end,i)=>i>0&&passed<end)-1;if(idx<0)idx=n-1;const localMs=Math.max(0,passed-edges[idx]);const pct=Math.min(1,localMs/times[idx]);
-  if(sectioned&&audio&&idx!==lastCue){lastCue=idx;const point=window.REEECAP_MUSIC5?.cue(idx)||0;try{if(audio.duration>point+1){if(audioGain){audioGain.gain.cancelScheduledValues(actx.currentTime);audioGain.gain.setTargetAtTime(.001,actx.currentTime,.028);}setTimeout(()=>{if(!audio||!actx)return;audio.currentTime=point;if(audioGain)audioGain.gain.setTargetAtTime(Math.max(.01,Math.min(1,Number($('videoVolume').value)/100)),actx.currentTime,.09);},75);}}catch{}}
-  frame(ctx,snapshot,snapshot.stories[idx],pct,idx,n,logo,localMs);const percentage=Math.min(100,passed/duration*100);progress(percentage);
+  const passed=performance.now()-start;if(passed-lastPaint<1000/targetFps-1&&passed<duration){interval=requestAnimationFrame(paint);return;}
+  if(Number.isFinite(lastPaint)&&passed-lastPaint>1500/targetFps)metrics.lateFrames++;metrics.renderedFrames++;lastPaint=passed;
+  let idx=edges.findIndex((end,i)=>i>0&&passed<end)-1;if(idx<0)idx=n-1;const localMs=Math.max(0,passed-edges[idx]);
+  const lead=idx===1&&snapshot.stories[0].kind==='intro'?600:0;
+  frame(ctx,snapshot,snapshot.stories[idx],(localMs+lead)/(times[idx]+lead),idx,n,logo,localMs+lead,snapshot.stories[idx+1],times[idx+1]);const percentage=Math.min(100,passed/duration*100);progress(percentage);
+  captureTrack.requestFrame?.();
   if(Math.floor(percentage)%5===0)message(`${tr().progress} · ${Math.floor(percentage)}%`);
-  if(passed>=duration){clearInterval(interval);try{recorder.stop();}catch{clean();}}
- },1000/30);
+  if(passed>=duration){
+   // requestFrame is asynchronous. Let the final submitted frame reach the
+   // encoder before stopping; stopping in this task can truncate slow exports.
+   stopTimer=setTimeout(()=>{try{recorder.stop();}catch{clean();}},100);return;
+  }
+  interval=requestAnimationFrame(paint);
+ };interval=requestAnimationFrame(paint);
 }
 window.REEECAP_DRAW_STORY_FRAME=frame;
+window.REEECAP_ATTACH_STORY_FRAME=attachStory;
 window.REEECAP_RECORD_VIDEO=show;
 })();

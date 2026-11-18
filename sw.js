@@ -1,6 +1,6 @@
 /* REEECAP PWA — only same-origin public app files are cached.
    Social-data ZIPs are never sent to the worker or stored. */
-const VERSION='reeecap-shell-v6.3';
+const VERSION='reeecap-shell-v6.4';
 const STATIC=[
  './','./index.html','./manifest.webmanifest',
  './style.css','./atelier.css','./edition-02.css','./edition-03.css','./edition-04.css','./edition-05.css','./experience.css','./edition-06.css','./edition-07.css','./edition-08.css','./edition-09.css','./edition-10.css','./edition-11.css','./edition-12.css',
